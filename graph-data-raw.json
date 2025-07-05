@@ -1,0 +1,68 @@
+{
+  "data": {
+    "tokens": [
+      {
+        "id": "0x00000000efe302beaa2b3e6e1b18d08d69a9012a",
+        "symbol": "AUSD",
+        "name": "AUSD",
+        "decimals": "6"
+      },
+      {
+        "id": "0x0913da6da4b42f538b445599b46bb4622342cf52",
+        "symbol": "vbWBTC",
+        "name": "Vault Bridge WBTC",
+        "decimals": "8"
+      },
+      {
+        "id": "0x203a662b0bd271a6ed5a60edfbd04bfce608fd36",
+        "symbol": "vbUSDC",
+        "name": "Vault Bridge USDC",
+        "decimals": "6"
+      },
+      {
+        "id": "0x2dca96907fde857dd3d816880a0df407eeb2d2f2",
+        "symbol": "vbUSDT",
+        "name": "Vault Bridge USDT",
+        "decimals": "6"
+      },
+      {
+        "id": "0x9b8df6e244526ab5f6e6400d331db28c8fdddb55",
+        "symbol": "uSOL",
+        "name": "Solana (Universal)",
+        "decimals": "18"
+      }
+    ],
+    "createMetaMorphos": [
+      {
+        "id": "0x0b6b49d5959afb45a1c2548543e4578ff5fccd1d5ebf0da315ed865a355a596305000000",
+        "metaMorpho": "0xc5e7ab07030305fc925175b25b93b285d40dcdff",
+        "caller": "0xf603265f91f58f1efa4fad57694fb3b77b25fc18",
+        "initialOwner": "0x5d8c96b76a342c640d9605187dab780f8365f69f"
+      },
+      {
+        "id": "0x1038cf75bcc4f537fab534d6f85697987770ae8a718eaba7ed2ff007f541f4c705000000",
+        "metaMorpho": "0xe4248e2105508fcbad3fe95691551d1af14015f7",
+        "caller": "0xf603265f91f58f1efa4fad57694fb3b77b25fc18",
+        "initialOwner": "0x5d8c96b76a342c640d9605187dab780f8365f69f"
+      },
+      {
+        "id": "0x2cde85c045b120b567eefa270519c45b71124d95ef69dc390e0665240e4de7e605000000",
+        "metaMorpho": "0x1ecdc3f2b5e90bfb55ff45a7476ff98a8957388e",
+        "caller": "0xf603265f91f58f1efa4fad57694fb3b77b25fc18",
+        "initialOwner": "0x5d8c96b76a342c640d9605187dab780f8365f69f"
+      },
+      {
+        "id": "0x372ed92866320c305d46e70dc40f4b95b485c35b41195a8876d96686b5889c0605000000",
+        "metaMorpho": "0xe107ccdeb8e20e499545c813f98cc90619b29859",
+        "caller": "0xfc5f89d29ccaa86e5410a7ad9d9d280d4455c12b",
+        "initialOwner": "0xfc5f89d29ccaa86e5410a7ad9d9d280d4455c12b"
+      },
+      {
+        "id": "0x3af54307076db10b080068b7636889e3811aa1f20a8153c4056584287f52e0cb05000000",
+        "metaMorpho": "0xb7b2c8d0f6a56b7573a1a7a2ed36c516f1133430",
+        "caller": "0xf83db716a1ff12f9005f98f678d8be97b8bc81d6",
+        "initialOwner": "0xf83db716a1ff12f9005f98f678d8be97b8bc81d6"
+      }
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+type StrategyProposed @entity(immutable: true) {
+  id: Bytes!
+  trader: Bytes! # address
+  strategyBet: Bytes! # address
+  vaults: [Bytes!]! # address[]
+  amounts: [BigInt!]! # uint256[]
+  tokens: [Bytes!]! # address[]
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
