@@ -11,9 +11,9 @@ interface StrategyCardProps {
 
 const StrategyCard = ({ strategy }: StrategyCardProps) => {
   const yesPercentage = (strategy.votesYes / (strategy.votesYes + strategy.votesNo)) * 100;
-  const returnColor = strategy.currentReturn >= 0 ? "text-green-600" : "text-red-600";
+  const returnColor = strategy.currentReturn >= 0 ? "text-green-500" : "text-red-600";
   const riskColor = {
-    low: "bg-green-500/20 text-green-400 border border-green-500/30",
+    low: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
     medium: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
     high: "bg-red-500/20 text-red-400 border border-red-500/30"
   }[strategy.risk];
@@ -30,7 +30,7 @@ const StrategyCard = ({ strategy }: StrategyCardProps) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Award className="h-5 w-5 text-primary" />
-            <CardTitle className="text-lg bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
+            <CardTitle className="text-lg bg-white bg-clip-text text-transparent">
               {strategy.trader}
             </CardTitle>
           </div>

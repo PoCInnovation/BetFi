@@ -15,7 +15,7 @@ export default function Home() {
           </p>
           <div className="flex items-center justify-center space-x-8 mt-6 text-sm text-muted-foreground">
             <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
               <span>Live Strategies</span>
             </div>
             <div className="flex items-center space-x-2">

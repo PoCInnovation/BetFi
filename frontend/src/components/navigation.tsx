@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Wallet, TrendingUp, HandCoins, Plus } from "lucide-react";
+import { Home, Wallet, TrendingUp, HandCoins, Plus, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -12,13 +12,13 @@ const Navigation = () => {
   const navItems = [
     { href: "/", label: "Strategies", icon: Home },
     { href: "/portfolio", label: "Portfolio", icon: Wallet },
-    { href: "/traders", label: "Traders", icon: HandCoins },
+    { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
   ];
 
   return (
     <div className="w-full flex justify-center py-8 px-4">
       <div className="relative">
-        <nav className="shadow-primary/10 inset-4 shadow-xl relative bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl px-12 py-4 min-w-[600px] max-w-4xl">
+        <nav className="shadow-primary/5 inset-4 shadow-xl relative bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl px-12 py-4 min-w-[600px] max-w-4xl">
           <div className="flex items-center justify-between w-full">
             <Link href="/" className="flex items-center space-x-3 group">
               <TrendingUp className="h-8 w-8 text-primary group-hover:scale-110 transition-all duration-300" />

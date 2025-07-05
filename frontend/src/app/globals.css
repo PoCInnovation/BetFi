@@ -9,8 +9,8 @@
   --card-foreground: 0 0% 98%;
   --popover: 240 10% 3.9%;
   --popover-foreground: 0 0% 98%;
-  --primary: 142.1 76.2% 36.3%;
-  --primary-foreground: 355.7 100% 97.3%;
+  --primary: 0 84.2% 60.2%; /* rouge */
+  --primary-foreground: 0 0% 100%; /* blanc pour bon contraste */
   --secondary: 240 3.7% 15.9%;
   --secondary-foreground: 0 0% 98%;
   --muted: 240 5.9% 10%;
@@ -21,7 +21,7 @@
   --destructive-foreground: 0 0% 98%;
   --border: 240 3.7% 15.9%;
   --input: 240 3.7% 15.9%;
-  --ring: 142.1 76.2% 36.3%;
+  --ring: 0 84.2% 60.2%; /* rouge, identique à primary */
   --radius: 0.75rem;
 }
 
@@ -39,8 +39,8 @@
     text-wrap: balance;
   }
   
-  .glow-green {
-    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+  .glow-red {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
   }
   
   .glow-blue {
@@ -63,16 +63,10 @@
   .crypto-card {
     background: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%);
     border: 1px solid hsl(var(--border));
-    box-shadow: 
-      0 4px 6px -1px rgba(0, 0, 0, 0.1),
-      0 0 10px rgba(34, 197, 94, 0.1);
   }
   
   .crypto-card:hover {
-    box-shadow: 
-      0 10px 15px -3px rgba(0, 0, 0, 0.1),
-      0 0 20px rgba(34, 197, 94, 0.2);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
   }
 }
 

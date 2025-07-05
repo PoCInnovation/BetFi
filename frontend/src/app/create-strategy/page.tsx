@@ -30,7 +30,7 @@ export default function CreateStrategyPage() {
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-blue-400 to-purple-400 bg-clip-text text-transparent mb-4">
+          <h1 className="text-4xl font-bold text-foreground mb-4">
             Create New Strategy
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -127,7 +127,7 @@ export default function CreateStrategyPage() {
 
                   <Button
                     type="submit"
-                    className="w-full bg-gradient-to-r from-primary to-blue-500 hover:from-primary/90 hover:to-blue-500/90 font-bold py-3"
+                    className="w-full bg-primary/80 hover:bg-primary font-bold py-3"
                   >
                     <TrendingUp className="h-4 w-4 mr-2" />
                     Create Strategy

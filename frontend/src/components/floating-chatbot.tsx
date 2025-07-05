@@ -274,7 +274,7 @@ const FloatingChatbot = () => {
             "h-14 w-14 rounded-full shadow-2xl transition-all duration-100 ease-out",
             "bg-primary/80 hover:bg-primary",
             "border-2 border-primary/30 hover:scale-110 active:scale-95",
-            "hover:shadow-[0_0_40px_rgba(34,197,94,0.4)] hover:rotate-12",
+            "hover:shadow-[0_0_40px_rgba(239,68,68,0.4)] hover:rotate-12",
             isDragging ? "scale-110 shadow-3xl" : "",
             isAnimating ? "animate-pulse" : ""
           )}
@@ -294,8 +294,7 @@ const FloatingChatbot = () => {
         >
           <Card className={cn(
             "crypto-card border-2 border-primary/20 shadow-2xl h-full flex flex-col",
-            "transition-all duration-200 ease-out",
-            isOpen ? "shadow-[0_0_60px_rgba(34,197,94,0.2)]" : ""
+            "transition-all duration-200 ease-out"
           )}>
             <CardHeader 
               className="pb-3 cursor-grab active:cursor-grabbing"
@@ -337,7 +336,7 @@ const FloatingChatbot = () => {
                       className={cn(
                         "max-w-[85%] p-3 rounded-2xl text-sm",
                         message.type === 'user'
-                          ? 'bg-gradient-to-r from-primary to-blue-500 text-white ml-4'
+                          ? 'bg-gradient-to-r from-primary to-red-500 text-white ml-4'
                           : 'bg-muted text-foreground mr-4'
                       )}
                     >

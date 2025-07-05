@@ -42,6 +42,32 @@ export interface ChatMessage {
   recommendations?: Strategy[];
 }
 
+export interface LeaderboardTrader {
+  id: string;
+  name: string;
+  reputation: number;
+  totalStrategies: number;
+  successRate: number;
+  totalVolume: number;
+  avgReturn: number;
+  winStreak: number;
+  rank: number;
+  change: number; // +/- places depuis la semaine dernière
+}
+
+export interface LeaderboardBetter {
+  id: string;
+  name: string;
+  totalBets: number;
+  successRate: number;
+  totalProfit: number;
+  avgBetSize: number;
+  winStreak: number;
+  rank: number;
+  change: number;
+  level: string;
+}
+
 export const mockStrategies: Strategy[] = [
   {
     id: '1',
@@ -230,3 +256,201 @@ export const formatCurrency = (amount: number): string => {
 export const formatETH = (amount: number): string => {
   return `${amount.toFixed(3)} ETH`;
 };
+
+export const mockLeaderboardTraders: LeaderboardTrader[] = [
+  {
+    id: '1',
+    name: 'SafeTrader',
+    reputation: 95,
+    totalStrategies: 52,
+    successRate: 82,
+    totalVolume: 1200000,
+    avgReturn: 12.8,
+    winStreak: 8,
+    rank: 1,
+    change: 0
+  },
+  {
+    id: '2',
+    name: 'DefiMaster',
+    reputation: 92,
+    totalStrategies: 38,
+    successRate: 75,
+    totalVolume: 1800000,
+    avgReturn: 15.2,
+    winStreak: 5,
+    rank: 2,
+    change: 1
+  },
+  {
+    id: '3',
+    name: 'TechAnalyst',
+    reputation: 89,
+    totalStrategies: 43,
+    successRate: 71,
+    totalVolume: 985000,
+    avgReturn: 18.5,
+    winStreak: 3,
+    rank: 3,
+    change: 2
+  },
+  {
+    id: '4',
+    name: 'CryptoWizard',
+    reputation: 87,
+    totalStrategies: 45,
+    successRate: 68,
+    totalVolume: 2500000,
+    avgReturn: 22.1,
+    winStreak: 2,
+    rank: 4,
+    change: -1
+  },
+  {
+    id: '5',
+    name: 'BullMarket',
+    reputation: 78,
+    totalStrategies: 29,
+    successRate: 62,
+    totalVolume: 1560000,
+    avgReturn: 28.3,
+    winStreak: 1,
+    rank: 5,
+    change: -3
+  },
+  {
+    id: '6',
+    name: 'AlphaHunter',
+    reputation: 84,
+    totalStrategies: 35,
+    successRate: 69,
+    totalVolume: 750000,
+    avgReturn: 16.7,
+    winStreak: 4,
+    rank: 6,
+    change: 1
+  },
+  {
+    id: '7',
+    name: 'YieldFarmer',
+    reputation: 91,
+    totalStrategies: 41,
+    successRate: 73,
+    totalVolume: 680000,
+    avgReturn: 11.2,
+    winStreak: 6,
+    rank: 7,
+    change: 0
+  },
+  {
+    id: '8',
+    name: 'FlashTrader',
+    reputation: 79,
+    totalStrategies: 67,
+    successRate: 64,
+    totalVolume: 1100000,
+    avgReturn: 19.8,
+    winStreak: 1,
+    rank: 8,
+    change: -2
+  }
+];
+
+export const mockLeaderboardBetters: LeaderboardBetter[] = [
+  {
+    id: '1',
+    name: 'MegaWhale',
+    totalBets: 234,
+    successRate: 78,
+    totalProfit: 45.8,
+    avgBetSize: 2.3,
+    winStreak: 12,
+    rank: 1,
+    change: 2,
+    level: 'Diamond'
+  },
+  {
+    id: '2',
+    name: 'SmartBetter',
+    totalBets: 186,
+    successRate: 82,
+    totalProfit: 38.2,
+    avgBetSize: 1.1,
+    winStreak: 8,
+    rank: 2,
+    change: 0,
+    level: 'Platinum'
+  },
+  {
+    id: '3',
+    name: 'RiskTaker',
+    totalBets: 298,
+    successRate: 65,
+    totalProfit: 32.7,
+    avgBetSize: 0.8,
+    winStreak: 3,
+    rank: 3,
+    change: -1,
+    level: 'Gold'
+  },
+  {
+    id: '4',
+    name: 'CautiousInvestor',
+    totalBets: 145,
+    successRate: 86,
+    totalProfit: 29.1,
+    avgBetSize: 0.6,
+    winStreak: 15,
+    rank: 4,
+    change: 1,
+    level: 'Platinum'
+  },
+  {
+    id: '5',
+    name: 'QuickFlip',
+    totalBets: 412,
+    successRate: 58,
+    totalProfit: 24.3,
+    avgBetSize: 0.4,
+    winStreak: 2,
+    rank: 5,
+    change: -2,
+    level: 'Silver'
+  },
+  {
+    id: '6',
+    name: 'DegenGambler',
+    totalBets: 167,
+    successRate: 72,
+    totalProfit: 21.8,
+    avgBetSize: 1.5,
+    winStreak: 5,
+    rank: 6,
+    change: 3,
+    level: 'Gold'
+  },
+  {
+    id: '7',
+    name: 'AnalyticBrain',
+    totalBets: 89,
+    successRate: 89,
+    totalProfit: 19.4,
+    avgBetSize: 0.9,
+    winStreak: 7,
+    rank: 7,
+    change: 0,
+    level: 'Gold'
+  },
+  {
+    id: '8',
+    name: 'DiamondHands',
+    totalBets: 203,
+    successRate: 69,
+    totalProfit: 17.2,
+    avgBetSize: 0.7,
+    winStreak: 4,
+    rank: 8,
+    change: -1,
+    level: 'Silver'
+  }
+];
