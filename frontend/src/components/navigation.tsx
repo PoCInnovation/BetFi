@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Bot, Wallet, TrendingUp } from "lucide-react";
+import { Home, Wallet, TrendingUp, HandCoins } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Navigation = () => {
@@ -10,8 +10,8 @@ const Navigation = () => {
 
   const navItems = [
     { href: "/", label: "Strategies", icon: Home },
-    { href: "/ai", label: "AI Advisor", icon: Bot },
     { href: "/portfolio", label: "Portfolio", icon: Wallet },
+    { href: "/traders", label: "Traders", icon: HandCoins },
   ];
 
   return (
