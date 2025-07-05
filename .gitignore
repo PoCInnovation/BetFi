@@ -2,6 +2,9 @@
 cache/
 out/
 
+*/**/node_modules/
+.next/
+
 # Ignores development broadcast logs
 !/broadcast
 /broadcast/*/31337/
