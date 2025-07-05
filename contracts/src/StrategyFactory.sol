@@ -28,6 +28,7 @@ contract StrategyFactory {
         for (uint i = 0; i < tokens.length; i++) {
             require(IERC20(tokens[i]).allowance(address(msg.sender), address(this)) == amounts[i] && IERC20(tokens[i]).balanceOf(address(msg.sender)) >= amounts[i], "Token amount invalid");
             require(IERC4626(vaults[i]).maxDeposit(address(this)) >= amounts[i], "Vault max deposit below amount");
+            require(IERC4626(vaults[i]).asset() == tokens[i], "Vault asset mismatch");
         }
 
         // Deploy the StrategyBet contract
@@ -42,7 +43,6 @@ contract StrategyFactory {
             commission,
             address(this)
         );
-
 
         for (uint256 i = 0; i < tokens.length; i++) {
             IERC20(tokens[i]).transferFrom(msg.sender, address(bet), amounts[i]);
