@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Compiler files
 cache/
 out/
@@ -16,3 +17,6 @@ docs/
 
 # Dotenv file
 .env
+=======
+node_modules
+>>>>>>> backend

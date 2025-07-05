@@ -1,0 +1,43 @@
+/**
+ * This module provides utility functions for working with base58 ids
+ * in TypeScript.
+ *
+ * @since 0.0.6
+ */
+export declare const BASE58_ALLOWED_CHARS = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+export type Base58 = string;
+/**
+ * Base58 encodes the given string value.
+ *
+ * @example
+ * ```ts
+ * import { v4 as uuidv4 } from "uuid";
+ *
+ * const uuid = uuidv4(); // 92539817-7989-4083-ab80-e9c2b2b66669
+ * const dashesRemoved = uuid.replaceAll(/-/g, ""); // 9253981779894083ab80e9c2b2b66669
+ * const encoded = encodeBase58(dashesRemoved)
+ * console.log(encoded) // K51CbDqxW35osbjPo5ZF77
+ * ```
+ *
+ * @param val string to encode as base58
+ * @returns the base58 encoded string
+ */
+export declare function encodeBase58(val: string): Base58;
+export type UUID = string;
+/**
+ * Expand the base58 encoded UUID back to its original UUID format
+ *
+ * @example
+ * ```ts
+ * const uuid = 92539817-7989-4083-ab80-e9c2b2b66669;
+ * const encoded = encodeBase58(dashesRemoved); // K51CbDqxW35osbjPo5ZF77
+ * const decoded = decodeBase58ToUUID(encoded); // 92539817-7989-4083-ab80-e9c2b2b66669
+ *
+ * expect(decoded).toEqual(uuid);
+ * ```
+ *
+ * @param encoded base58 encoded UUID
+ * @returns the expanded UUID from the base58 encoded value
+ */
+export declare function decodeBase58ToUUID(encoded: string): UUID;
+//# sourceMappingURL=base58.d.ts.map
