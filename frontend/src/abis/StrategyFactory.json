@@ -75,7 +75,7 @@
         "internalType": "address[]"
       },
       {
-        "name": "objectivePercent", // 1% = 100
+        "name": "objectivePercent", 
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -85,7 +85,7 @@
         "internalType": "uint256"
       },
       {
-        "name": "commission", // 1% = 100
+        "name": "commission",
         "type": "uint256",
         "internalType": "uint256"
       }

@@ -1,5 +1,5 @@
 import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
-import strategyFactoryAbi from '../../../abis/StrategyFactory.json'
+import strategyFactoryAbi from '@/abis/StrategyFactory.json'
 import { useToast } from '@/hooks/use-toast'
 
 export function useProposeStrategy() {
@@ -19,7 +19,7 @@ export function useProposeStrategy() {
   const executeFunction = async (vaults: string[], amounts: number[], tokens: string[], objectivePercent: number, duration: number, commission: number) => {
     try {
       writeContract({
-        address: '0xYourContractAddress',
+        address: '0x63d54A0563D15C13c31607F3556E48379f84bCA7',
         abi: strategyFactoryAbi,
         functionName: 'proposeStrategy',
         args: [
