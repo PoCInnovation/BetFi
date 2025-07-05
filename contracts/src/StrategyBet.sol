@@ -83,6 +83,15 @@ contract StrategyBet {
         }
     }
 
+    // only for testing purposes to retreive test funds. Need to be removed in production
+    function withdrawFunds() external {
+        for (uint i = 0; i < vaults.length; i++) {
+            IERC4626(vaults[i]).withdraw(IERC4626(vaults[i]).maxWithdraw(address(this)), address(this), address(this));
+            IERC20(tokens[i]).transfer(trader, IERC20(tokens[i]).balanceOf(address(this)));
+        }
+        IERC20(ausd).transfer(trader, IERC20(ausd).balanceOf(address(this)));
+    }
+
     function placeBet(bool isYes, uint256 amount) external {
         require(!betsClosed, "bets closed");
         require(amount > 0, "zero amount");
@@ -116,7 +125,8 @@ contract StrategyBet {
 
     function getCurrentValue() public view returns (uint256 total) {
         for (uint i = 0; i < vaults.length; i++) {
-            total += IERC4626(vaults[i]).previewRedeem(IERC4626(vaults[i]).balanceOf(address(this)));
+            uint256 balance = IERC4626(vaults[i]).balanceOf(address(this));
+            total += IERC4626(vaults[i]).previewRedeem(balance);
         }
     }
 
@@ -156,5 +166,14 @@ contract StrategyBet {
         emit Claimed(msg.sender, payout);
     }
 
-    // Add more functions for trader to withdraw, commission, etc.
+    function withdrawStrategy() external onlyTrader {
+        require(resolved, "not resolved");
+        require(block.timestamp >= endTime, "not finished");
+        for (uint i = 0; i < vaults.length; i++) {
+            uint256 maxWithdraw = IERC4626(vaults[i]).maxWithdraw(address(this));
+            IERC4626(vaults[i]).withdraw(maxWithdraw, address(this), address(this));
+            IERC20(tokens[i]).transfer(trader, IERC20(tokens[i]).balanceOf(address(this)));
+        }
+        // add yield share here
+    }
 }
