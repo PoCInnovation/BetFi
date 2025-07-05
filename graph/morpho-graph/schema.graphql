@@ -1,0 +1,24 @@
+type Token @entity(immutable: false) {
+  id: Bytes! # token address
+  symbol: String!
+  name: String!
+  decimals: BigInt!
+  totalSupply: BigInt
+  metaMorphos: [CreateMetaMorpho!]! @derivedFrom(field: "assetToken")
+}
+
+type CreateMetaMorpho @entity(immutable: true) {
+  id: Bytes!
+  metaMorpho: Bytes! # address
+  caller: Bytes! # address
+  initialOwner: Bytes! # address
+  initialTimelock: BigInt! # uint256
+  asset: Bytes! # address
+  assetToken: Token # relationship to token entity
+  name: String! # string
+  symbol: String! # string
+  salt: Bytes! # bytes32
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

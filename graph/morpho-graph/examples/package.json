@@ -1,0 +1,14 @@
+{
+  "name": "betfi-examples",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Examples and tests for BetFi subgraph",
+  "scripts": {
+    "test-client": "node test-client.js",
+    "test-dashboard": "python -m http.server 8080",
+    "test-connection": "node -e \"import('./test-connection.js')\""
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}

@@ -1,0 +1,45 @@
+type StrategyProposed @entity(immutable: true) {
+  id: Bytes!
+  trader: Bytes! # address
+  strategyBet: Bytes! # address
+  vaults: [Bytes!]! # address[]
+  amounts: [BigInt!]! # uint256[]
+  tokens: [Bytes!]! # address[]
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  strategy: Strategy! # Relation to the Strategy entity
+}
+
+type Strategy @entity(immutable: false) {
+  id: Bytes! # strategy contract address
+  trader: Bytes! # address of the trader who created the strategy
+  initialValue: BigInt! # Initial value of the strategy
+  objectivePercent: BigInt! # Target percentage for the strategy
+  duration: BigInt! # Strategy duration
+  commission: BigInt! # Commission percentage
+  totalYes: BigInt! # Total amount of YES bets
+  totalNo: BigInt! # Total amount of NO bets
+  startTime: BigInt! # Strategy start time
+  endTime: BigInt! # Strategy end time
+  betsClosed: Boolean! # Whether betting phase is closed
+  strategyExecuted: Boolean! # Whether strategy has been executed
+  resolved: Boolean! # Whether strategy has been resolved
+  finalValue: BigInt! # Final value after resolution
+  vaults: [Bytes!]! # List of vault addresses
+  tokens: [Bytes!]! # List of token addresses
+  amounts: [BigInt!]! # List of amounts
+  bets: [Bet!]! @derivedFrom(field: "strategy") # Relation to bets
+}
+
+type Bet @entity(immutable: false) {
+  id: Bytes! # unique ID for the bet (strategy address + user address)
+  strategy: Strategy! # Strategy this bet belongs to
+  user: Bytes! # Address of the bettor
+  amount: BigInt! # Amount of the bet
+  side: Int! # 0 = NO, 1 = YES
+  claimed: Boolean! # Whether rewards have been claimed
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

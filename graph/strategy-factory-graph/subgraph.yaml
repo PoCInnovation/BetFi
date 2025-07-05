@@ -1,0 +1,56 @@
+specVersion: 1.3.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Strategy_factory
+    network: katana
+    source:
+      address: "0xC93BEDC364B170c332CEFE65023906A06165511f"
+      abi: Strategy_factory
+      startBlock: 5001220
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StrategyProposed
+        - Strategy
+      abis:
+        - name: Strategy_factory
+          file: ./abis/Strategy_factory.json
+        - name: Strategy
+          file: ./abis/Strategy.json
+      eventHandlers:
+        - event: StrategyProposed(indexed address,address,address[],uint256[],address[])
+          handler: handleStrategyProposed
+      file: ./src/strategy-factory.ts
+
+templates:
+  - kind: ethereum
+    name: Strategy
+    network: katana
+    source:
+      abi: Strategy
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Strategy
+        - Bet
+      abis:
+        - name: Strategy
+          file: ./abis/Strategy.json
+      eventHandlers:
+        - event: BetPlaced(indexed address,uint8,uint256)
+          handler: handleBetPlaced
+        - event: BetsClosed(uint256)
+          handler: handleBetsClosed
+        - event: Claimed(indexed address,uint256)
+          handler: handleClaimed
+        - event: StrategyResolved(bool,uint256)
+          handler: handleStrategyResolved
+      file: ./src/strategy.ts

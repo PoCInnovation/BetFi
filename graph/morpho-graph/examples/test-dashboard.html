@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BetFi Dashboard Test</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; padding: 0; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        // Mock client for testing
+        class MockBetFiSubgraphClientWithTokenData {
+            async getMetaMorphosWithTokenData(first = 10) {
+                // Simulate API delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                return [
+                    {
+                        id: "0x1",
+                        metaMorpho: "0x742d35Cc6635C0532925a3b8D39Cc3Df70F6E4E4",
+                        caller: "0x742d35Cc6635C0532925a3b8D39Cc3Df70F6E4E4",
+                        initialOwner: "0x742d35Cc6635C0532925a3b8D39Cc3Df70F6E4E4",
+                        initialTimelock: "86400",
+                        asset: "0xA0b86a33E6c7c7B02c9B8c3CB5E2c0C2b5C8E8D7f",
+                        name: "USDC Yield Vault",
+                        symbol: "yUSDC",
+                        salt: "0x123",
+                        blockNumber: "12345",
+                        blockTimestamp: "1704067200",
+                        transactionHash: "0xabc123...",
+                        tokenData: {
+                            address: "0xA0b86a33E6c7c7B02c9B8c3CB5E2c0C2b5C8E8D7f",
+                            name: "USD Coin",
+                            symbol: "USDC",
+                            decimals: 6,
+                            totalSupply: "1000000000000"
+                        }
+                    },
+                    {
+                        id: "0x2",
+                        metaMorpho: "0x1234567890123456789012345678901234567890",
+                        caller: "0x1234567890123456789012345678901234567890",
+                        initialOwner: "0x1234567890123456789012345678901234567890",
+                        initialTimelock: "172800",
+                        asset: "0x1234567890123456789012345678901234567890",
+                        name: "USDT Strategy Vault",
+                        symbol: "sUSDT",
+                        salt: "0x456",
+                        blockNumber: "12346",
+                        blockTimestamp: "1704153600",
+                        transactionHash: "0xdef456...",
+                        tokenData: {
+                            address: "0x1234567890123456789012345678901234567890",
+                            name: "Tether USD",
+                            symbol: "USDT",
+                            decimals: 6,
+                            totalSupply: "5000000000000"
+                        }
+                    },
+                    {
+                        id: "0x3",
+                        metaMorpho: "0x9876543210987654321098765432109876543210",
+                        caller: "0x9876543210987654321098765432109876543210",
+                        initialOwner: "0x9876543210987654321098765432109876543210",
+                        initialTimelock: "259200",
+                        asset: "0x9876543210987654321098765432109876543210",
+                        name: "ETH Morpho Vault",
+                        symbol: "mETH",
+                        salt: "0x789",
+                        blockNumber: "12347",
+                        blockTimestamp: "1704240000",
+                        transactionHash: "0x789abc...",
+                        tokenData: {
+                            address: "0x9876543210987654321098765432109876543210",
+                            name: "Ethereum",
+                            symbol: "ETH",
+                            decimals: 18,
+                            totalSupply: "120000000000000000000000000"
+                        }
+                    }
+                ];
+            }
+        }
+
+        // Vault Card Component
+        const VaultCard = ({ vault }) => {
+            return React.createElement('div', {
+                className: "bg-white shadow-md rounded-lg p-6 mb-4 border-l-4 border-blue-500"
+            }, [
+                React.createElement('div', {
+                    key: 'header',
+                    className: "flex justify-between items-start mb-4"
+                }, [
+                    React.createElement('div', { key: 'title' }, [
+                        React.createElement('h3', {
+                            key: 'name',
+                            className: "text-xl font-bold text-gray-800"
+                        }, vault.name),
+                        React.createElement('p', {
+                            key: 'symbol',
+                            className: "text-gray-600"
+                        }, `Symbol: ${vault.symbol}`)
+                    ]),
+                    React.createElement('div', {
+                        key: 'badge',
+                        className: "text-right"
+                    }, React.createElement('span', {
+                        className: "bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded"
+                    }, vault.tokenData?.symbol || 'Unknown Token'))
+                ]),
+                
+                React.createElement('div', {
+                    key: 'grid1',
+                    className: "grid grid-cols-2 gap-4 mb-4"
+                }, [
+                    React.createElement('div', { key: 'asset' }, [
+                        React.createElement('p', {
+                            key: 'label',
+                            className: "text-sm text-gray-500"
+                        }, "Asset Token"),
+                        React.createElement('p', {
+                            key: 'name',
+                            className: "font-mono text-sm text-gray-800 break-all"
+                        }, vault.tokenData?.name || vault.asset),
+                        React.createElement('p', {
+                            key: 'address',
+                            className: "text-xs text-gray-500"
+                        }, vault.asset)
+                    ]),
+                    React.createElement('div', { key: 'vault' }, [
+                        React.createElement('p', {
+                            key: 'label',
+                            className: "text-sm text-gray-500"
+                        }, "Vault Address"),
+                        React.createElement('p', {
+                            key: 'address',
+                            className: "font-mono text-sm text-gray-800 break-all"
+                        }, vault.metaMorpho)
+                    ])
+                ]),
+                
+                React.createElement('div', {
+                    key: 'grid2',
+                    className: "grid grid-cols-2 gap-4 mb-4"
+                }, [
+                    React.createElement('div', { key: 'creator' }, [
+                        React.createElement('p', {
+                            key: 'label',
+                            className: "text-sm text-gray-500"
+                        }, "Creator"),
+                        React.createElement('p', {
+                            key: 'address',
+                            className: "font-mono text-sm text-gray-800 break-all"
+                        }, vault.caller)
+                    ]),
+                    React.createElement('div', { key: 'timelock' }, [
+                        React.createElement('p', {
+                            key: 'label',
+                            className: "text-sm text-gray-500"
+                        }, "Timelock"),
+                        React.createElement('p', {
+                            key: 'value',
+                            className: "text-sm text-gray-800"
+                        }, `${vault.initialTimelock} seconds`)
+                    ])
+                ]),
+                
+                vault.tokenData && React.createElement('div', {
+                    key: 'tokenDetails',
+                    className: "bg-gray-50 rounded p-3 mt-4"
+                }, [
+                    React.createElement('p', {
+                        key: 'title',
+                        className: "text-sm font-medium text-gray-700 mb-2"
+                    }, "Token Details"),
+                    React.createElement('div', {
+                        key: 'details',
+                        className: "grid grid-cols-2 gap-2 text-sm"
+                    }, [
+                        React.createElement('div', { key: 'decimals' }, [
+                            React.createElement('span', {
+                                key: 'label',
+                                className: "text-gray-500"
+                            }, "Decimals: "),
+                            vault.tokenData.decimals
+                        ]),
+                        vault.tokenData.totalSupply && React.createElement('div', { key: 'supply' }, [
+                            React.createElement('span', {
+                                key: 'label',
+                                className: "text-gray-500"
+                            }, "Supply: "),
+                            vault.tokenData.totalSupply
+                        ])
+                    ])
+                ]),
+                
+                React.createElement('div', {
+                    key: 'footer',
+                    className: "mt-4 pt-4 border-t border-gray-200"
+                }, [
+                    React.createElement('p', {
+                        key: 'created',
+                        className: "text-xs text-gray-500"
+                    }, `Created: ${new Date(parseInt(vault.blockTimestamp) * 1000).toLocaleString()}`),
+                    React.createElement('p', {
+                        key: 'tx',
+                        className: "text-xs text-gray-500 font-mono"
+                    }, `Tx: ${vault.transactionHash}`)
+                ])
+            ]);
+        };
+
+        // Main Dashboard Component
+        const BetFiVaultDashboard = () => {
+            const [vaults, setVaults] = React.useState([]);
+            const [loading, setLoading] = React.useState(true);
+            const [error, setError] = React.useState(null);
+
+            React.useEffect(() => {
+                const loadVaults = async () => {
+                    try {
+                        setLoading(true);
+                        setError(null);
+                        
+                        const client = new MockBetFiSubgraphClientWithTokenData();
+                        const vaultsData = await client.getMetaMorphosWithTokenData(50);
+                        setVaults(vaultsData);
+                    } catch (err) {
+                        setError(err.message || 'Failed to load vaults');
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                loadVaults();
+            }, []);
+
+            if (loading) {
+                return React.createElement('div', {
+                    className: "min-h-screen bg-gray-50 flex items-center justify-center"
+                }, React.createElement('div', {
+                    className: "text-center"
+                }, [
+                    React.createElement('div', {
+                        key: 'spinner',
+                        className: "animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"
+                    }),
+                    React.createElement('p', {
+                        key: 'text',
+                        className: "mt-4 text-gray-600"
+                    }, "Loading MetaMorpho vaults...")
+                ]));
+            }
+
+            if (error) {
+                return React.createElement('div', {
+                    className: "min-h-screen bg-gray-50 flex items-center justify-center"
+                }, React.createElement('div', {
+                    className: "text-center"
+                }, React.createElement('div', {
+                    className: "bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"
+                }, React.createElement('strong', {
+                    className: "font-bold"
+                }, "Error: "), error)));
+            }
+
+            return React.createElement('div', {
+                className: "min-h-screen bg-gray-50"
+            }, React.createElement('div', {
+                className: "container mx-auto px-4 py-8"
+            }, [
+                React.createElement('div', {
+                    key: 'header',
+                    className: "mb-8"
+                }, React.createElement('div', {
+                    className: "flex justify-between items-center"
+                }, React.createElement('div', {}, [
+                    React.createElement('h1', {
+                        key: 'title',
+                        className: "text-3xl font-bold text-gray-900"
+                    }, "BetFi MetaMorpho Vaults"),
+                    React.createElement('p', {
+                        key: 'subtitle',
+                        className: "text-gray-600"
+                    }, `Showing ${vaults.length} vaults`)
+                ]))),
+                
+                React.createElement('div', {
+                    key: 'stats',
+                    className: "grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+                }, [
+                    React.createElement('div', {
+                        key: 'total',
+                        className: "bg-white rounded-lg shadow p-6"
+                    }, React.createElement('div', {
+                        className: "flex items-center"
+                    }, [
+                        React.createElement('div', {
+                            key: 'icon',
+                            className: "p-2 bg-blue-100 rounded-lg"
+                        }, "📊"),
+                        React.createElement('div', {
+                            key: 'content',
+                            className: "ml-4"
+                        }, [
+                            React.createElement('p', {
+                                key: 'label',
+                                className: "text-sm font-medium text-gray-500"
+                            }, "Total Vaults"),
+                            React.createElement('p', {
+                                key: 'value',
+                                className: "text-2xl font-semibold text-gray-900"
+                            }, vaults.length)
+                        ])
+                    ])),
+                    
+                    React.createElement('div', {
+                        key: 'tokens',
+                        className: "bg-white rounded-lg shadow p-6"
+                    }, React.createElement('div', {
+                        className: "flex items-center"
+                    }, [
+                        React.createElement('div', {
+                            key: 'icon',
+                            className: "p-2 bg-green-100 rounded-lg"
+                        }, "💰"),
+                        React.createElement('div', {
+                            key: 'content',
+                            className: "ml-4"
+                        }, [
+                            React.createElement('p', {
+                                key: 'label',
+                                className: "text-sm font-medium text-gray-500"
+                            }, "Unique Tokens"),
+                            React.createElement('p', {
+                                key: 'value',
+                                className: "text-2xl font-semibold text-gray-900"
+                            }, new Set(vaults.map(v => v.tokenData?.symbol).filter(Boolean)).size)
+                        ])
+                    ])),
+                    
+                    React.createElement('div', {
+                        key: 'status',
+                        className: "bg-white rounded-lg shadow p-6"
+                    }, React.createElement('div', {
+                        className: "flex items-center"
+                    }, [
+                        React.createElement('div', {
+                            key: 'icon',
+                            className: "p-2 bg-purple-100 rounded-lg"
+                        }, "✅"),
+                        React.createElement('div', {
+                            key: 'content',
+                            className: "ml-4"
+                        }, [
+                            React.createElement('p', {
+                                key: 'label',
+                                className: "text-sm font-medium text-gray-500"
+                            }, "Status"),
+                            React.createElement('p', {
+                                key: 'value',
+                                className: "text-2xl font-semibold text-gray-900"
+                            }, "Live")
+                        ])
+                    ]))
+                ]),
+                
+                React.createElement('div', {
+                    key: 'vaults',
+                    className: "space-y-4"
+                }, vaults.map((vault) => React.createElement(VaultCard, {
+                    key: vault.id,
+                    vault: vault
+                })))
+            ]));
+        };
+
+        // Render the app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(BetFiVaultDashboard));
+    </script>
+</body>
+</html>
