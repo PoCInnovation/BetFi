@@ -1,10 +1,10 @@
-<<<<<<< HEAD
 # Compiler files
 cache/
 out/
 
 */**/node_modules/
 .next/
+*/**/pachage-lock.json
 
 # Ignores development broadcast logs
 !/broadcast
@@ -17,6 +17,3 @@ docs/
 
 # Dotenv file
 .env
-=======
-node_modules
->>>>>>> backend

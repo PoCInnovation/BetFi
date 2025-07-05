@@ -7,8 +7,5 @@ export interface Strategy {
   totalBets: number;
   votesYes: number;
   votesNo: number;
-  status: 'active' | 'completed' | 'failed';
-//   description: string;
-//   traderReputation: number;
-//   risk: 'low' | 'medium' | 'high';
+  status: 'active' | 'completed';
 }

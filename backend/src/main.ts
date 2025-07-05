@@ -3,14 +3,6 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
-  // Enable CORS for frontend integration
-  app.enableCors();
-  
-  // Global prefix for all routes
-  app.setGlobalPrefix('api');
-  
-  await app.listen(3000);
-  console.log('🚀 NestJS API running on http://localhost:3000/api');
+  await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

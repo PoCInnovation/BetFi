@@ -15,17 +15,8 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello from BetFi NestJS API!"', () => {
-      expect(appController.getHello()).toBe('Hello from BetFi NestJS API!');
-    });
-  });
-
-  describe('health', () => {
-    it('should return health status', () => {
-      const health = appController.getHealth();
-      expect(health).toHaveProperty('status', 'OK');
-      expect(health).toHaveProperty('service', 'BetFi NestJS API');
-      expect(health).toHaveProperty('timestamp');
+    it('should return "Hello World!"', () => {
+      expect(appController.getHello()).toBe('Hello World!');
     });
   });
 });
