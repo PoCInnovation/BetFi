@@ -1,66 +1,55 @@
-## Foundry
+# StrategyBet
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+## Description
 
-Foundry consists of:
+StrategyBet is a contract that allows users to bet on the outcome of a strategy.
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+## Functions
 
-## Documentation
+- `proposeStrategy`: Propose a new strategy.
+- `closeBetsAndLock`: Close the betting phase and lock the funds.
+- `resolveStrategy`: Resolve the strategy.
 
-https://book.getfoundry.sh/
+commands to do a full user flow:
 
-## Usage
+create a new strategy:
 
-### Build
-
-```shell
-$ forge build
+```
+forge script ./contracts/script/ProposeStrategy.s.sol:ProposeStrategyScript --rpc-url https://rpc.katana.network/ --broadcast --private-key $PRIVATE_KEY
 ```
 
-### Test
+approve the ausd to place bets:
 
-```shell
-$ forge test
+```
+cast send 0x00000000eFE302BEAA2b3e6e1b18d08D69a9012a "approve(address,uint256)" $STRATEGY_BET 10 --rpc-url https://rpc.katana.network/ --private-key $PRIVATE_KEY
 ```
 
-### Format
+place a bet:
 
-```shell
-$ forge fmt
+```
+cast send $STRATEGY_BET "placeBet(bool,uint256)(string)" false 10 --rpc-url https://rpc.katana.network/ --private-key $PRIVATE_KEY
 ```
 
-### Gas Snapshots
-
-```shell
-$ forge snapshot
+close the bets and lock the funds:
+```
+cast send $STRATEGY_BET "closeBetsAndLock()()" --rpc-url https://rpc.katana.network/ --private-key $PRIVATE_KEY
 ```
 
-### Anvil
+resolve the strategy:
 
-```shell
-$ anvil
+```
+cast send $STRATEGY_BET "resolveStrategy()" --rpc-url https://rpc.katana.network/ --private-key $PRIVATE_KEY
 ```
 
-### Deploy
+claim the funds (for betters):
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+```
+cast send $STRATEGY_BET "claim()" --rpc-url https://rpc.katana.network/ --private-key $PRIVATE_KEY
 ```
 
-### Cast
+withdraw the strategy (for trader):
 
-```shell
-$ cast <subcommand>
+```
+cast send $STRATEGY_BET "withdrawStrategy()" --rpc-url https://rpc.katana.network/ --private-key $PRIVATE_KEY
 ```
 
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```

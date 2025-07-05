@@ -34,6 +34,7 @@ contract StrategyBet {
     mapping(address => Bet) public bets;
     uint256 public totalYes;
     uint256 public totalNo;
+    uint256 public bettingPhaseDuration;
 
     event BetPlaced(address indexed user, BetSide side, uint256 amount);
     event BetsClosed(uint256 snapshotValue);
@@ -72,6 +73,7 @@ contract StrategyBet {
         startTime = block.timestamp;
         factory = _factory;
         strategyExecuted = false;
+        bettingPhaseDuration = 2 days;
     }
 
     function executeStrategy() external onlyFactoryOrTrader {
@@ -92,10 +94,17 @@ contract StrategyBet {
         IERC20(ausd).transfer(trader, IERC20(ausd).balanceOf(address(this)));
     }
 
+    // only for testing purposes to change the betting phase duration. Need to be removed in production
+    function changeBettingPhaseDuration(uint256 newDuration) external onlyTrader {
+        bettingPhaseDuration = newDuration;
+        startTime = block.timestamp;
+    }
+
     function placeBet(bool isYes, uint256 amount) external {
         require(!betsClosed, "bets closed");
         require(amount > 0, "zero amount");
         require(bets[msg.sender].amount == 0, "already bet");
+        require(IERC20(ausd).allowance(msg.sender, address(this)) >= amount, "not enough allowance");
 
         IERC20(ausd).transferFrom(msg.sender, address(this), amount);
 
@@ -111,9 +120,9 @@ contract StrategyBet {
         emit BetPlaced(msg.sender, isYes ? BetSide.Yes : BetSide.No, amount);
     }
 
-    function closeBetsAndLock() external onlyTrader {
+    function closeBetsAndLock() external {
         require(!betsClosed, "already closed");
-        require(block.timestamp >= startTime + 2 days, "betting phase not over"); // 48h
+        require(block.timestamp >= startTime + bettingPhaseDuration, "betting phase not over");
         betsClosed = true;
         lockTime = block.timestamp;
         endTime = lockTime + duration;
@@ -138,7 +147,7 @@ contract StrategyBet {
         finalValue = getCurrentValue();
         resolved = true;
 
-        bool success = (finalValue >= initialValue * (10000 + objectivePercent) / 10000);
+        bool success = (finalValue > initialValue * (10000 + objectivePercent) / 10000);
         emit StrategyResolved(success, finalValue);
     }
 
