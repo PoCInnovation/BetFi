@@ -1,9 +1,11 @@
-import { useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi'
 import strategyFactoryAbi from '@/abis/StrategyFactory.json'
 import { useToast } from '@/hooks/use-toast'
 
 export function useProposeStrategy() {
   const { toast } = useToast()
+  const { address } = useAccount()
+  
   const { 
     data: hash, 
     writeContract, 
@@ -22,6 +24,7 @@ export function useProposeStrategy() {
         address: '0x63d54A0563D15C13c31607F3556E48379f84bCA7',
         abi: strategyFactoryAbi,
         functionName: 'proposeStrategy',
+        account: address,
         args: [
           vaults,
           amounts,
