@@ -20,9 +20,9 @@ export default function PortfolioPage() {
   
   // Data for pie chart
   const pieData = [
-    { name: 'Gagnés', value: wonBets.length, color: '#10b981' },
-    { name: 'Perdus', value: lostBets.length, color: '#ef4444' },
-    { name: 'En cours', value: activeBets.length, color: '#6366f1' },
+    { name: 'Won', value: wonBets.length, color: '#10b981' },
+    { name: 'Lost', value: lostBets.length, color: '#ef4444' },
+    { name: 'Active', value: activeBets.length, color: '#6366f1' },
   ];
 
   const getStatusColor = (status: string) => {
@@ -36,9 +36,9 @@ export default function PortfolioPage() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'won': return 'Gagné';
-      case 'lost': return 'Perdu';
-      case 'active': return 'En cours';
+      case 'won': return 'Won';
+      case 'lost': return 'Lost';
+      case 'active': return 'Active';
       default: return status;
     }
   };
@@ -51,7 +51,7 @@ export default function PortfolioPage() {
             👜 My Portfolio 
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Suivez vos paris et analysez vos performances
+            Track your bets and analyze your performance
           </p>
         </div>
 
@@ -64,7 +64,7 @@ export default function PortfolioPage() {
                     <Wallet className="h-5 w-5 text-primary" />
                     <div>
                       <div className="text-2xl font-bold">{formatETH(totalBets)}</div>
-                      <div className="text-sm text-muted-foreground">Total misé</div>
+                      <div className="text-sm text-muted-foreground">Total Bet</div>
                     </div>
                   </div>
                 </CardContent>
@@ -76,7 +76,7 @@ export default function PortfolioPage() {
                     <DollarSign className="h-5 w-5 text-primary" />
                     <div>
                       <div className="text-2xl font-bold">{formatETH(totalPayout)}</div>
-                      <div className="text-sm text-muted-foreground">Total reçu</div>
+                      <div className="text-sm text-muted-foreground">Total Received</div>
                     </div>
                   </div>
                 </CardContent>
@@ -94,7 +94,7 @@ export default function PortfolioPage() {
                       <div className={`text-2xl font-bold ${totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {totalReturn >= 0 ? '+' : ''}{formatETH(totalReturn)}
                       </div>
-                      <div className="text-sm text-muted-foreground">Gain/Perte</div>
+                      <div className="text-sm text-muted-foreground">Profit/Loss</div>
                     </div>
                   </div>
                 </CardContent>
@@ -108,7 +108,7 @@ export default function PortfolioPage() {
                       <div className={`text-2xl font-bold ${returnPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {returnPercentage >= 0 ? '+' : ''}{returnPercentage.toFixed(1)}%
                       </div>
-                      <div className="text-sm text-muted-foreground">Rendement</div>
+                      <div className="text-sm text-muted-foreground">Return</div>
                     </div>
                   </div>
                 </CardContent>
@@ -117,7 +117,7 @@ export default function PortfolioPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Historique des Paris</CardTitle>
+                <CardTitle>Betting History</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -126,7 +126,7 @@ export default function PortfolioPage() {
                       <div className="flex-1">
                         <div className="font-medium">{bet.strategyName}</div>
                         <div className="text-sm text-muted-foreground">
-                          {new Date(bet.timestamp).toLocaleDateString('fr-FR')} • Position: {bet.position.toUpperCase()}
+                          {new Date(bet.timestamp).toLocaleDateString('en-US')} • Position: {bet.position.toUpperCase()}
                         </div>
                       </div>
                       <div className="text-right">
@@ -142,7 +142,7 @@ export default function PortfolioPage() {
                           </div>
                         )}
                         {bet.status === 'active' && (
-                          <div className="text-sm text-blue-600">En cours</div>
+                          <div className="text-sm text-blue-600">Active</div>
                         )}
                       </div>
                     </div>
@@ -155,7 +155,7 @@ export default function PortfolioPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Répartition des Paris</CardTitle>
+                <CardTitle>Bet Distribution</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-64">
@@ -197,25 +197,25 @@ export default function PortfolioPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Statistiques</CardTitle>
+                <CardTitle>Statistics</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Paris actifs</span>
+                  <span className="text-sm text-muted-foreground">Active Bets</span>
                   <span className="font-semibold">{activeBets.length}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Paris terminés</span>
+                  <span className="text-sm text-muted-foreground">Completed Bets</span>
                   <span className="font-semibold">{completedBets.length}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Taux de réussite</span>
+                  <span className="text-sm text-muted-foreground">Success Rate</span>
                   <span className="font-semibold">
                     {completedBets.length > 0 ? Math.round((wonBets.length / completedBets.length) * 100) : 0}%
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Gain moyen</span>
+                  <span className="text-sm text-muted-foreground">Average Gain</span>
                   <span className="font-semibold">
                     {wonBets.length > 0 ? formatETH(wonBets.reduce((sum, bet) => sum + (bet.payout || 0), 0) / wonBets.length) : '0.000 ETH'}
                   </span>
@@ -225,20 +225,20 @@ export default function PortfolioPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Actions Rapides</CardTitle>
+                <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button variant="outline" className="w-full justify-start">
                   <TrendingUp className="h-4 w-4 mr-2" />
-                  Voir les stratégies gagnantes
+                  View winning strategies
                 </Button>
                 <Button variant="outline" className="w-full justify-start">
                   <Target className="h-4 w-4 mr-2" />
-                  Demander conseil à l'IA
+                  Get AI advice
                 </Button>
                 <Button variant="outline" className="w-full justify-start">
                   <Clock className="h-4 w-4 mr-2" />
-                  Stratégies se terminant bientôt
+                  Strategies ending soon
                 </Button>
               </CardContent>
             </Card>

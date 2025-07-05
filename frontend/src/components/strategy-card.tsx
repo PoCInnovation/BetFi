@@ -97,24 +97,41 @@ const StrategyCard = ({ strategy }: StrategyCardProps) => {
         </p>
       </CardContent>
 
-      <CardFooter className="flex space-x-2 pt-4">
+      <CardFooter className="flex space-x-3 pt-4">
         <Button 
           variant="default" 
           size="sm" 
-          className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 border-0 font-bold glow-green"
+          className="flex-1 relative overflow-hidden group bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 border-0 font-bold text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
         >
-          BET YES
+          <span className="relative z-10 flex items-center justify-center space-x-2">
+            <span className="text-lg">✓</span>
+            <span>BET YES</span>
+          </span>
+          <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
         </Button>
         <Button 
           variant="outline" 
           size="sm" 
-          className="flex-1 border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-400 font-bold"
+          className="flex-1 relative overflow-hidden group border-2 border-red-500/60 text-red-400 hover:text-white hover:border-red-400 font-bold bg-red-500/5 hover:bg-gradient-to-r hover:from-red-500 hover:to-red-600 transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
         >
-          BET NO
+          <span className="relative z-10 flex items-center justify-center space-x-2">
+            <span className="text-lg">✗</span>
+            <span>BET NO</span>
+          </span>
+          <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
         </Button>
         <Link href={`/strategy/${strategy.id}`}>
-          <Button variant="ghost" size="sm" className="px-4 hover:bg-primary/10 hover:text-primary font-bold">
-            View
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="px-6 hover:bg-primary/10 hover:text-primary font-bold transition-all duration-300 hover:scale-105 active:scale-95 border border-transparent hover:border-primary/30"
+          >
+            <span className="flex items-center space-x-1">
+              <span>View</span>
+              <span className="text-xs">→</span>
+            </span>
           </Button>
         </Link>
       </CardFooter>
