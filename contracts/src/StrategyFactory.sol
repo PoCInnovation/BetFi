@@ -23,7 +23,7 @@ contract StrategyFactory {
         uint256 objectivePercent,
         uint256 duration,
         uint256 commission
-    ) external {
+    ) external returns (address) {
         require(vaults.length == amounts.length, "vaults/amounts mismatch");
         for (uint i = 0; i < tokens.length; i++) {
             require(IERC20(tokens[i]).allowance(address(msg.sender), address(this)) == amounts[i] && IERC20(tokens[i]).balanceOf(address(msg.sender)) >= amounts[i], "Token amount invalid");
@@ -54,6 +54,7 @@ contract StrategyFactory {
         // Add the strategy to the list of all strategies
         allStrategies.push(address(bet));
         emit StrategyProposed(msg.sender, address(bet), vaults, amounts, tokens);
+        return address(bet);
     }
 
     function sum(uint256[] memory arr) internal pure returns (uint256 s) {
