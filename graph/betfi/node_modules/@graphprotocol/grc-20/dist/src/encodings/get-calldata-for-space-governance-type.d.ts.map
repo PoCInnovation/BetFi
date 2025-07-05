@@ -1,0 +1,1 @@
+{"version":3,"file":"get-calldata-for-space-governance-type.d.ts","sourceRoot":"","sources":["../../../src/encodings/get-calldata-for-space-governance-type.ts"],"names":[],"mappings":"AAIA,KAAK,4BAA4B,GAAG;IAClC,IAAI,EAAE,QAAQ,GAAG,UAAU,CAAC;IAC5B,GAAG,EAAE,MAAM,CAAC;IACZ,kBAAkB,EAAE,MAAM,CAAC;CAC5B,CAAC;AAEF,wBAAgB,iCAAiC,CAAC,IAAI,EAAE,4BAA4B,iBAenF"}
