@@ -249,28 +249,6 @@ export default function PortfolioPage() {
                             </div>
                           </div>
                         </div>
-
-                        {/* Quick Actions */}
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="group hover:bg-primary hover:text-primary-foreground transition-all duration-200"
-                            >
-                              <Eye className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
-                              View Details
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-4xl">
-                            <DialogHeader>
-                              <DialogTitle>Strategy Details</DialogTitle>
-                            </DialogHeader>
-                            <div className="p-4">
-                              <p>Strategy details will be shown here.</p>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
                       </div>
 
                       {/* Betting Details */}
