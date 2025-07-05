@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { mockStrategies } from "@/lib/mock-data";
-import StrategyCard from "@/components/strategy-card";
 
 interface Message {
   id: string;

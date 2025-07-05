@@ -1,13 +1,13 @@
 export interface Strategy {
   id: string;
   trader: string;
-  objective: string;
-  deadline: string;
+  objective: number;
+  deadline: number;
   currentReturn: number;
   totalBets: number;
   votesYes: number;
   votesNo: number;
-  status: 'active' | 'completed' | 'failed';
+  status: 'active' | 'completed';
   description: string;
   traderReputation: number;
   risk: 'low' | 'medium' | 'high';
@@ -23,14 +23,12 @@ export interface Trader {
   strategies: Strategy[];
 }
 
-export interface UserBet {
-  id: string;
-  strategyId: string;
-  strategyName: string;
+export interface UserBet extends Strategy {
+  betId: string;
   amount: number;
   position: 'yes' | 'no';
   timestamp: string;
-  status: 'active' | 'won' | 'lost';
+  betStatus: 'active' | 'won' | 'lost';
   payout?: number;
 }
 
@@ -72,8 +70,8 @@ export const mockStrategies: Strategy[] = [
   {
     id: '1',
     trader: '0x742d35Cc6634C0532925a3b8D88B20d06c6A1234',
-    objective: '+15% in 48h',
-    deadline: '2025-01-07T12:00:00Z',
+    objective: 15,
+    deadline: 1736251200, // 2025-01-07T12:00:00Z
     currentReturn: 8.5,
     totalBets: 125000,
     votesYes: 65,
@@ -86,8 +84,8 @@ export const mockStrategies: Strategy[] = [
   {
     id: '2',
     trader: '0x8ba1f109551bD432803012645Hac189B14d5678',
-    objective: '+8% in 24h',
-    deadline: '2025-01-06T09:00:00Z',
+    objective: 8,
+    deadline: 1736154000, // 2025-01-06T09:00:00Z
     currentReturn: 3.2,
     totalBets: 89000,
     votesYes: 72,
@@ -100,8 +98,8 @@ export const mockStrategies: Strategy[] = [
   {
     id: '3',
     trader: '0x3C44CdDdB6a900fa2b585dd299e03d12FA429abc',
-    objective: '+5% in 12h',
-    deadline: '2025-01-05T21:00:00Z',
+    objective: 5,
+    deadline: 1736110800, // 2025-01-05T21:00:00Z
     currentReturn: 4.8,
     totalBets: 67000,
     votesYes: 85,
@@ -114,8 +112,8 @@ export const mockStrategies: Strategy[] = [
   {
     id: '4',
     trader: '0x90F79bf6EB2c4f870365E785982E1f101E93def0',
-    objective: '+20% in 72h',
-    deadline: '2025-01-08T15:00:00Z',
+    objective: 20,
+    deadline: 1736348400, // 2025-01-08T15:00:00Z
     currentReturn: -2.1,
     totalBets: 156000,
     votesYes: 45,
@@ -128,8 +126,8 @@ export const mockStrategies: Strategy[] = [
   {
     id: '5',
     trader: '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65',
-    objective: '+12% in 36h',
-    deadline: '2025-01-07T03:00:00Z',
+    objective: 12,
+    deadline: 1736218800, // 2025-01-07T03:00:00Z
     currentReturn: 9.8,
     totalBets: 98000,
     votesYes: 78,
@@ -173,32 +171,68 @@ export const mockTraders: Trader[] = [
 
 export const mockUserBets: UserBet[] = [
   {
+    // Strategy properties
     id: '1',
-    strategyId: '1',
-    strategyName: '0x742d35Cc6634C0532925a3b8D88B20d06c6A1234 - +15% in 48h',
+    trader: '0x742d35Cc6634C0532925a3b8D88B20d06c6A1234',
+    objective: 15,
+    deadline: 1736251200,
+    currentReturn: 8.5,
+    totalBets: 125000,
+    votesYes: 65,
+    votesNo: 35,
+    status: 'active',
+    description: 'Technical analysis strategy focused on emerging DeFi altcoins with high alpha potential',
+    traderReputation: 87,
+    risk: 'high',
+    // Bet-specific properties
+    betId: 'bet_1',
     amount: 0.5,
     position: 'yes',
     timestamp: '2025-01-04T14:30:00Z',
-    status: 'active'
+    betStatus: 'active'
   },
   {
+    // Strategy properties
     id: '2',
-    strategyId: '2',
-    strategyName: '0x8ba1f109551bD432803012645Hac189B14d5678 - +8% in 24h',
+    trader: '0x8ba1f109551bD432803012645Hac189B14d5678',
+    objective: 8,
+    deadline: 1736154000,
+    currentReturn: 3.2,
+    totalBets: 89000,
+    votesYes: 72,
+    votesNo: 28,
+    status: 'active',
+    description: 'Cross-protocol DeFi arbitrage with controlled risk exposure and yield optimization',
+    traderReputation: 92,
+    risk: 'medium',
+    // Bet-specific properties
+    betId: 'bet_2',
     amount: 0.3,
     position: 'no',
     timestamp: '2025-01-04T10:15:00Z',
-    status: 'won',
+    betStatus: 'won',
     payout: 0.42
   },
   {
+    // Strategy properties
     id: '3',
-    strategyId: '3',
-    strategyName: '0x3C44CdDdB6a900fa2b585dd299e03d12FA429abc - +5% in 12h',
+    trader: '0x3C44CdDdB6a900fa2b585dd299e03d12FA429abc',
+    objective: 5,
+    deadline: 1736110800,
+    currentReturn: 4.8,
+    totalBets: 67000,
+    votesYes: 85,
+    votesNo: 15,
+    status: 'completed',
+    description: 'Conservative strategy using stable assets and low-risk blue-chip tokens',
+    traderReputation: 95,
+    risk: 'low',
+    // Bet-specific properties
+    betId: 'bet_3',
     amount: 0.8,
     position: 'yes',
     timestamp: '2025-01-03T16:45:00Z',
-    status: 'lost',
+    betStatus: 'lost',
     payout: 0
   }
 ];
@@ -226,15 +260,14 @@ export const getTraderById = (id: string): Trader | undefined => {
   return mockTraders.find(trader => trader.id === id);
 };
 
-export const formatTimeRemaining = (deadline: string): string => {
-  const now = new Date();
-  const end = new Date(deadline);
-  const diff = end.getTime() - now.getTime();
+export const formatTimeRemaining = (deadline: number): string => {
+  const now = Math.floor(Date.now() / 1000);
+  const diff = deadline - now;
   
   if (diff <= 0) return 'Expired';
   
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const hours = Math.floor(diff / 3600);
+  const minutes = Math.floor((diff % 3600) / 60);
   
   if (hours > 24) {
     const days = Math.floor(hours / 24);
