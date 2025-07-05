@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,9 +20,25 @@ import {
 const Navigation = () => {
   const pathname = usePathname();
   const { address, isConnected } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
-  const { disconnect } = useDisconnect();
+  const { connect, connectors, isPending } = useConnect({
+    mutation: {
+      onSuccess: () => {
+        toast.success("Wallet connected!", "Successfully connected to your wallet");
+      },
+      onError: (error) => {
+        toast.error("Connection failed", error.message);
+      },
+    },
+  });
+  const { disconnect } = useDisconnect({
+    mutation: {
+      onSuccess: () => {
+        toast.info("Wallet disconnected", "Your wallet has been disconnected");
+      },
+    },
+  });
   const [showConnectors, setShowConnectors] = useState(false);
+  const { toast } = useToast();
 
   const navItems = [
     { href: "/", label: "Strategies", icon: Home },
@@ -35,8 +52,12 @@ const Navigation = () => {
 
   const copyAddress = async () => {
     if (address) {
-      await navigator.clipboard.writeText(address);
-      // Vous pouvez ajouter une notification toast ici
+      try {
+        await navigator.clipboard.writeText(address);
+        toast.success("Address copied!", "Wallet address copied to clipboard");
+      } catch (error) {
+        toast.error("Failed to copy address", "Please try again");
+      }
     }
   };
 
@@ -179,7 +200,7 @@ const Navigation = () => {
                         className="flex items-center space-x-2 cursor-pointer text-red-500 hover:text-red-600 hover:bg-red-50"
                       >
                         <LogOut className="h-4 w-4" />
-                        <span>Déconnecter</span>
+                        <span>Disconnect</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

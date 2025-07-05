@@ -17,12 +17,14 @@ import {
   truncateAddress,
   mockChartData 
 } from "@/lib/mock-data";
+import { useToast } from "@/hooks/use-toast";
 
 export default function StrategyPage() {
   const params = useParams();
   const strategyId = params.id as string;
   const strategy = getStrategyById(strategyId);
   const trader = strategy ? getTraderById(strategy.trader) : null;
+  const { toast } = useToast();
   
   const [betAmount, setBetAmount] = useState("");
   const [betPosition, setBetPosition] = useState<"yes" | "no">("yes");
@@ -50,11 +52,21 @@ export default function StrategyPage() {
 
   const handleBet = () => {
     if (!betAmount || parseFloat(betAmount) <= 0) {
-      alert("Please enter a valid amount");
+      toast.error("Invalid amount", "Please enter a valid amount greater than 0");
       return;
     }
-    alert(`Bet of ${betAmount} ETH on ${betPosition.toUpperCase()} placed successfully!`);
-    setBetAmount("");
+    
+    const loadingId = toast.loading("Placing bet...");
+    
+    // Simulate API call
+    setTimeout(() => {
+      toast.dismiss(loadingId);
+      toast.success(
+        "Bet placed successfully!", 
+        `${betAmount} ETH bet on ${betPosition.toUpperCase()} for ${truncateAddress(strategy.trader)}`
+      );
+      setBetAmount("");
+    }, 2000);
   };
 
   return (

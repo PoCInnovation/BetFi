@@ -4,6 +4,7 @@ import "./globals.css";
 import Navigation from "@/components/navigation";
 import FloatingChatbot from "@/components/floating-chatbot";
 import Providers from "@/components/providers";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,6 +35,13 @@ export default function RootLayout({
           <Navigation />
           {children}
           <FloatingChatbot />
+          <Toaster 
+            position="top-right"
+            expand={true}
+            richColors={true}
+            closeButton={true}
+            theme="dark"
+          />
         </Providers>
       </body>
     </html>
