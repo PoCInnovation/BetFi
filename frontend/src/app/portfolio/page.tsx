@@ -4,7 +4,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { Wallet, TrendingUp, TrendingDown, Clock, Target, DollarSign } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { mockUserBets, formatETH, formatCurrency } from "@/lib/mock-data";
+import { mockUserBets, formatETH, formatCurrency, truncateAddress } from "@/lib/mock-data";
 
 export default function PortfolioPage() {
   // Calculate portfolio statistics
@@ -121,10 +121,16 @@ export default function PortfolioPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockUserBets.map((bet) => (
+                  {mockUserBets.map((bet) => {
+                    // Extract trader address from strategy name
+                    const traderAddress = bet.strategyName.split(' - ')[0];
+                    const objective = bet.strategyName.split(' - ')[1];
+                    const displayName = `${truncateAddress(traderAddress)} - ${objective}`;
+                    
+                    return (
                     <div key={bet.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
                       <div className="flex-1">
-                        <div className="font-medium">{bet.strategyName}</div>
+                        <div className="font-medium" title={bet.strategyName}>{displayName}</div>
                         <div className="text-sm text-muted-foreground">
                           {new Date(bet.timestamp).toLocaleDateString('en-US')} • Position: {bet.position.toUpperCase()}
                         </div>
@@ -146,7 +152,8 @@ export default function PortfolioPage() {
                         )}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>

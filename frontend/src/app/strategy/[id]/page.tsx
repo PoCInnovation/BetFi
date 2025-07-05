@@ -14,6 +14,7 @@ import {
   formatTimeRemaining, 
   formatCurrency, 
   formatETH,
+  truncateAddress,
   mockChartData 
 } from "@/lib/mock-data";
 
@@ -31,8 +32,8 @@ export default function StrategyPage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="max-w-md">
           <CardContent className="p-6 text-center">
-            <h2 className="text-2xl font-bold mb-2">Stratégie introuvable</h2>
-            <p className="text-muted-foreground">Cette stratégie n'existe pas ou a été supprimée.</p>
+            <h2 className="text-2xl font-bold mb-2">Strategy Not Found</h2>
+            <p className="text-muted-foreground">This strategy does not exist or has been deleted.</p>
           </CardContent>
         </Card>
       </div>
@@ -49,10 +50,10 @@ export default function StrategyPage() {
 
   const handleBet = () => {
     if (!betAmount || parseFloat(betAmount) <= 0) {
-      alert("Veuillez entrer un montant valide");
+      alert("Please enter a valid amount");
       return;
     }
-    alert(`Pari de ${betAmount} ETH sur ${betPosition.toUpperCase()} placé avec succès !`);
+    alert(`Bet of ${betAmount} ETH on ${betPosition.toUpperCase()} placed successfully!`);
     setBetAmount("");
   };
 
@@ -63,9 +64,9 @@ export default function StrategyPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <Award className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold">{strategy.trader}</h1>
+              <h1 className="text-3xl font-bold" title={strategy.trader}>{truncateAddress(strategy.trader)}</h1>
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${riskColor}`}>
-                {strategy.risk === 'low' ? 'Faible risque' : strategy.risk === 'medium' ? 'Risque moyen' : 'Risque élevé'}
+                {strategy.risk === 'low' ? 'Low Risk' : strategy.risk === 'medium' ? 'Medium Risk' : 'High Risk'}
               </span>
             </div>
             <div className="flex items-center space-x-2">
@@ -92,7 +93,7 @@ export default function StrategyPage() {
           <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Évolution du Rendement</CardTitle>
+                <CardTitle>Performance Evolution</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -109,7 +110,7 @@ export default function StrategyPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Description de la Stratégie</CardTitle>
+                <CardTitle>Strategy Description</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed">
@@ -121,25 +122,25 @@ export default function StrategyPage() {
             {trader && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Historique du Trader</CardTitle>
+                  <CardTitle>Trader History</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-primary">{trader.reputation}</div>
-                      <div className="text-sm text-muted-foreground">Réputation</div>
+                      <div className="text-sm text-muted-foreground">Reputation</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-primary">{trader.totalStrategies}</div>
-                      <div className="text-sm text-muted-foreground">Stratégies</div>
+                      <div className="text-sm text-muted-foreground">Strategies</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-green-600">{trader.successRate}%</div>
-                      <div className="text-sm text-muted-foreground">Taux de réussite</div>
+                      <div className="text-sm text-muted-foreground">Success Rate</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-primary">{formatCurrency(trader.totalVolume)}</div>
-                      <div className="text-sm text-muted-foreground">Volume total</div>
+                      <div className="text-sm text-muted-foreground">Total Volume</div>
                     </div>
                   </div>
                 </CardContent>
@@ -150,20 +151,20 @@ export default function StrategyPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Statistiques</CardTitle>
+                <CardTitle>Statistics</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Total des mises</span>
+                  <span className="text-sm text-muted-foreground">Total Bets</span>
                   <span className="font-semibold">{formatCurrency(strategy.totalBets)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Réputation trader</span>
+                  <span className="text-sm text-muted-foreground">Trader Reputation</span>
                   <span className="font-semibold">{strategy.traderReputation}/100</span>
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span>Votes OUI/NON</span>
+                    <span>YES/NO Votes</span>
                     <span className="font-medium">{strategy.votesYes}% / {strategy.votesNo}%</span>
                   </div>
                   <Progress value={yesPercentage} className="h-2" />
@@ -173,11 +174,11 @@ export default function StrategyPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Placer un Pari</CardTitle>
+                <CardTitle>Place a Bet</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Montant (ETH)</label>
+                  <label className="text-sm font-medium">Amount (ETH)</label>
                   <Input
                     type="number"
                     placeholder="0.1"
@@ -196,23 +197,23 @@ export default function StrategyPage() {
                       onClick={() => setBetPosition("yes")}
                       className="w-full"
                     >
-                      OUI
+                      YES
                     </Button>
                     <Button
                       variant={betPosition === "no" ? "default" : "outline"}
                       onClick={() => setBetPosition("no")}
                       className="w-full"
                     >
-                      NON
+                      NO
                     </Button>
                   </div>
                 </div>
 
                 {betAmount && (
                   <div className="p-3 bg-muted rounded-lg">
-                    <div className="text-sm text-muted-foreground mb-1">Récapitulatif</div>
+                    <div className="text-sm text-muted-foreground mb-1">Summary</div>
                     <div className="flex justify-between">
-                      <span>Mise:</span>
+                      <span>Bet:</span>
                       <span className="font-semibold">{formatETH(parseFloat(betAmount))}</span>
                     </div>
                     <div className="flex justify-between">
@@ -224,7 +225,7 @@ export default function StrategyPage() {
 
                 <Button onClick={handleBet} className="w-full" size="lg">
                   <DollarSign className="h-4 w-4 mr-2" />
-                  Confirmer le Pari
+                  Confirm Bet
                 </Button>
               </CardContent>
             </Card>

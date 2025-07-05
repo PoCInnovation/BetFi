@@ -144,21 +144,21 @@ export default function CreateStrategyPage() {
               </CardHeader>
               <CardContent className="space-y-4 text-sm">
                 <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">1</div>
+                  <div className="w-9 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">1</div>
                   <div>
                     <div className="font-medium">Create Strategy</div>
                     <div className="text-muted-foreground">Define your trading objective and timeline</div>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">2</div>
+                  <div className="w-9 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">2</div>
                   <div>
                     <div className="font-medium">Users Bet</div>
                     <div className="text-muted-foreground">Others bet YES or NO on your success</div>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">3</div>
+                  <div className="w-10 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">3</div>
                   <div>
                     <div className="font-medium">Execute & Share</div>
                     <div className="text-muted-foreground">Execute your strategy and share profits with winners</div>

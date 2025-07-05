@@ -24,6 +24,7 @@ import {
   mockLeaderboardBetters, 
   formatCurrency, 
   formatETH,
+  truncateAddress,
   LeaderboardTrader,
   LeaderboardBetter
 } from "@/lib/mock-data";
@@ -68,7 +69,9 @@ export default function LeaderboardPage() {
           <div className="flex items-center space-x-3">
             {getRankIcon(trader.rank)}
             <div>
-              <h3 className="text-lg font-bold text-foreground">{trader.name}</h3>
+              <h3 className="text-lg font-bold text-foreground" title={trader.name}>
+                {truncateAddress(trader.name)}
+              </h3>
               <div className="flex items-center space-x-2 mt-1">
                 <Badge variant="outline" className="text-xs">
                   Rep: {trader.reputation}/100
@@ -123,7 +126,9 @@ export default function LeaderboardPage() {
           <div className="flex items-center space-x-3">
             {getRankIcon(better.rank)}
             <div>
-              <h3 className="text-lg font-bold text-foreground">{better.name}</h3>
+              <h3 className="text-lg font-bold text-foreground" title={better.name}>
+                {truncateAddress(better.name)}
+              </h3>
               <div className="flex items-center space-x-2 mt-1">
                 <Badge 
                   variant="outline" 
@@ -239,7 +244,9 @@ export default function LeaderboardPage() {
                       <div className="flex justify-center mb-2">
                         {getRankIcon(trader.rank)}
                       </div>
-                      <CardTitle className="text-xl">{trader.name}</CardTitle>
+                      <CardTitle className="text-xl" title={trader.name}>
+                        {truncateAddress(trader.name)}
+                      </CardTitle>
                       <div className="text-3xl font-bold text-green-500">
                         {trader.avgReturn.toFixed(1)}%
                       </div>
@@ -288,7 +295,9 @@ export default function LeaderboardPage() {
                       <div className="flex justify-center mb-2">
                         {getRankIcon(better.rank)}
                       </div>
-                      <CardTitle className="text-xl">{better.name}</CardTitle>
+                      <CardTitle className="text-xl" title={better.name}>
+                        {truncateAddress(better.name)}
+                      </CardTitle>
                       <div className="text-3xl font-bold text-green-500">
                         +{formatETH(better.totalProfit)}
                       </div>

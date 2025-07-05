@@ -71,7 +71,7 @@ export interface LeaderboardBetter {
 export const mockStrategies: Strategy[] = [
   {
     id: '1',
-    trader: 'CryptoWizard',
+    trader: '0x742d35Cc6634C0532925a3b8D88B20d06c6A1234',
     objective: '+15% in 48h',
     deadline: '2025-01-07T12:00:00Z',
     currentReturn: 8.5,
@@ -85,7 +85,7 @@ export const mockStrategies: Strategy[] = [
   },
   {
     id: '2',
-    trader: 'DefiMaster',
+    trader: '0x8ba1f109551bD432803012645Hac189B14d5678',
     objective: '+8% in 24h',
     deadline: '2025-01-06T09:00:00Z',
     currentReturn: 3.2,
@@ -99,7 +99,7 @@ export const mockStrategies: Strategy[] = [
   },
   {
     id: '3',
-    trader: 'SafeTrader',
+    trader: '0x3C44CdDdB6a900fa2b585dd299e03d12FA429abc',
     objective: '+5% in 12h',
     deadline: '2025-01-05T21:00:00Z',
     currentReturn: 4.8,
@@ -113,7 +113,7 @@ export const mockStrategies: Strategy[] = [
   },
   {
     id: '4',
-    trader: 'BullMarket',
+    trader: '0x90F79bf6EB2c4f870365E785982E1f101E93def0',
     objective: '+20% in 72h',
     deadline: '2025-01-08T15:00:00Z',
     currentReturn: -2.1,
@@ -127,7 +127,7 @@ export const mockStrategies: Strategy[] = [
   },
   {
     id: '5',
-    trader: 'TechAnalyst',
+    trader: '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65',
     objective: '+12% in 36h',
     deadline: '2025-01-07T03:00:00Z',
     currentReturn: 9.8,
@@ -144,30 +144,30 @@ export const mockStrategies: Strategy[] = [
 export const mockTraders: Trader[] = [
   {
     id: '1',
-    name: 'CryptoWizard',
+    name: '0x742d35Cc6634C0532925a3b8D88B20d06c6A1234',
     reputation: 87,
     totalStrategies: 45,
     successRate: 68,
     totalVolume: 2500000,
-    strategies: mockStrategies.filter(s => s.trader === 'CryptoWizard')
+    strategies: mockStrategies.filter(s => s.trader === '0x742d35Cc6634C0532925a3b8D88B20d06c6A1234')
   },
   {
     id: '2',
-    name: 'DefiMaster',
+    name: '0x8ba1f109551bD432803012645Hac189B14d5678',
     reputation: 92,
     totalStrategies: 38,
     successRate: 75,
     totalVolume: 1800000,
-    strategies: mockStrategies.filter(s => s.trader === 'DefiMaster')
+    strategies: mockStrategies.filter(s => s.trader === '0x8ba1f109551bD432803012645Hac189B14d5678')
   },
   {
     id: '3',
-    name: 'SafeTrader',
+    name: '0x3C44CdDdB6a900fa2b585dd299e03d12FA429abc',
     reputation: 95,
     totalStrategies: 52,
     successRate: 82,
     totalVolume: 1200000,
-    strategies: mockStrategies.filter(s => s.trader === 'SafeTrader')
+    strategies: mockStrategies.filter(s => s.trader === '0x3C44CdDdB6a900fa2b585dd299e03d12FA429abc')
   }
 ];
 
@@ -175,7 +175,7 @@ export const mockUserBets: UserBet[] = [
   {
     id: '1',
     strategyId: '1',
-    strategyName: 'CryptoWizard - +15% in 48h',
+    strategyName: '0x742d35Cc6634C0532925a3b8D88B20d06c6A1234 - +15% in 48h',
     amount: 0.5,
     position: 'yes',
     timestamp: '2025-01-04T14:30:00Z',
@@ -184,7 +184,7 @@ export const mockUserBets: UserBet[] = [
   {
     id: '2',
     strategyId: '2',
-    strategyName: 'DefiMaster - +8% in 24h',
+    strategyName: '0x8ba1f109551bD432803012645Hac189B14d5678 - +8% in 24h',
     amount: 0.3,
     position: 'no',
     timestamp: '2025-01-04T10:15:00Z',
@@ -194,7 +194,7 @@ export const mockUserBets: UserBet[] = [
   {
     id: '3',
     strategyId: '3',
-    strategyName: 'SafeTrader - +5% in 12h',
+    strategyName: '0x3C44CdDdB6a900fa2b585dd299e03d12FA429abc - +5% in 12h',
     amount: 0.8,
     position: 'yes',
     timestamp: '2025-01-03T16:45:00Z',
@@ -257,10 +257,17 @@ export const formatETH = (amount: number): string => {
   return `${amount.toFixed(3)} ETH`;
 };
 
+export const truncateAddress = (address: string, startChars: number = 6, endChars: number = 4): string => {
+  if (address.length <= startChars + endChars) {
+    return address;
+  }
+  return `${address.slice(0, startChars)}...${address.slice(-endChars)}`;
+};
+
 export const mockLeaderboardTraders: LeaderboardTrader[] = [
   {
     id: '1',
-    name: 'SafeTrader',
+    name: '0x3C44CdDdB6a900fa2b585dd299e03d12FA429abc',
     reputation: 95,
     totalStrategies: 52,
     successRate: 82,
@@ -272,7 +279,7 @@ export const mockLeaderboardTraders: LeaderboardTrader[] = [
   },
   {
     id: '2',
-    name: 'DefiMaster',
+    name: '0x8ba1f109551bD432803012645Hac189B14d5678',
     reputation: 92,
     totalStrategies: 38,
     successRate: 75,
@@ -284,7 +291,7 @@ export const mockLeaderboardTraders: LeaderboardTrader[] = [
   },
   {
     id: '3',
-    name: 'TechAnalyst',
+    name: '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65',
     reputation: 89,
     totalStrategies: 43,
     successRate: 71,
@@ -296,7 +303,7 @@ export const mockLeaderboardTraders: LeaderboardTrader[] = [
   },
   {
     id: '4',
-    name: 'CryptoWizard',
+    name: '0x742d35Cc6634C0532925a3b8D88B20d06c6A1234',
     reputation: 87,
     totalStrategies: 45,
     successRate: 68,
@@ -308,7 +315,7 @@ export const mockLeaderboardTraders: LeaderboardTrader[] = [
   },
   {
     id: '5',
-    name: 'BullMarket',
+    name: '0x90F79bf6EB2c4f870365E785982E1f101E93def0',
     reputation: 78,
     totalStrategies: 29,
     successRate: 62,
@@ -320,7 +327,7 @@ export const mockLeaderboardTraders: LeaderboardTrader[] = [
   },
   {
     id: '6',
-    name: 'AlphaHunter',
+    name: '0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc',
     reputation: 84,
     totalStrategies: 35,
     successRate: 69,
@@ -332,7 +339,7 @@ export const mockLeaderboardTraders: LeaderboardTrader[] = [
   },
   {
     id: '7',
-    name: 'YieldFarmer',
+    name: '0x976EA74026E726554dB657fA54763abd0C3a0aa9',
     reputation: 91,
     totalStrategies: 41,
     successRate: 73,
@@ -344,7 +351,7 @@ export const mockLeaderboardTraders: LeaderboardTrader[] = [
   },
   {
     id: '8',
-    name: 'FlashTrader',
+    name: '0x14dC79964da2C08b23698B3D3cc7Ca32193d9955',
     reputation: 79,
     totalStrategies: 67,
     successRate: 64,
@@ -359,7 +366,7 @@ export const mockLeaderboardTraders: LeaderboardTrader[] = [
 export const mockLeaderboardBetters: LeaderboardBetter[] = [
   {
     id: '1',
-    name: 'MegaWhale',
+    name: '0xa0Ee7A142d267C1f36714E4a8F75612F20a79720',
     totalBets: 234,
     successRate: 78,
     totalProfit: 45.8,
@@ -371,7 +378,7 @@ export const mockLeaderboardBetters: LeaderboardBetter[] = [
   },
   {
     id: '2',
-    name: 'SmartBetter',
+    name: '0xBcd4042DE499D14e55001CcbB24a551F3b954096',
     totalBets: 186,
     successRate: 82,
     totalProfit: 38.2,
@@ -383,7 +390,7 @@ export const mockLeaderboardBetters: LeaderboardBetter[] = [
   },
   {
     id: '3',
-    name: 'RiskTaker',
+    name: '0x71bE63f3384f5fb98995898A86B02Fb2426c5788',
     totalBets: 298,
     successRate: 65,
     totalProfit: 32.7,
@@ -395,7 +402,7 @@ export const mockLeaderboardBetters: LeaderboardBetter[] = [
   },
   {
     id: '4',
-    name: 'CautiousInvestor',
+    name: '0xFABB0ac9d68B0B445fB7357272Ff202C5651694a',
     totalBets: 145,
     successRate: 86,
     totalProfit: 29.1,
@@ -407,7 +414,7 @@ export const mockLeaderboardBetters: LeaderboardBetter[] = [
   },
   {
     id: '5',
-    name: 'QuickFlip',
+    name: '0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec',
     totalBets: 412,
     successRate: 58,
     totalProfit: 24.3,
@@ -419,7 +426,7 @@ export const mockLeaderboardBetters: LeaderboardBetter[] = [
   },
   {
     id: '6',
-    name: 'DegenGambler',
+    name: '0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097',
     totalBets: 167,
     successRate: 72,
     totalProfit: 21.8,
@@ -431,7 +438,7 @@ export const mockLeaderboardBetters: LeaderboardBetter[] = [
   },
   {
     id: '7',
-    name: 'AnalyticBrain',
+    name: '0xcd3B766CCDd6AE721141F452C550Ca635964ce71',
     totalBets: 89,
     successRate: 89,
     totalProfit: 19.4,
@@ -443,7 +450,7 @@ export const mockLeaderboardBetters: LeaderboardBetter[] = [
   },
   {
     id: '8',
-    name: 'DiamondHands',
+    name: '0x2546BcD3c84621e976D8185a91A922aE77ECEc30',
     totalBets: 203,
     successRate: 69,
     totalProfit: 17.2,
