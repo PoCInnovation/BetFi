@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, Eye } from "lucide-react";
 import {
   formatCurrency,
   formatTimeRemaining,
@@ -19,6 +19,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface FilterState {
   status: string;
@@ -43,7 +50,7 @@ export default function Home() {
       // Search term filter
       const matchesSearch =
         strategy.trader.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        strategy.objective.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        strategy.objective.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
         strategy.description.toLowerCase().includes(searchTerm.toLowerCase());
 
       // Status filter
@@ -278,117 +285,299 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Strategy List */}
+        {/* Strategy Table */}
         {filteredAndSortedStrategies.length > 0 ? (
           <div className="space-y-4">
+            {/* Header */}
+            <div className="grid grid-cols-12 gap-2 p-4 bg-muted/30 rounded-lg border border-border/50">
+              <div className="col-span-2 text-sm font-medium text-muted-foreground">Trader / Objective</div>
+              <div className="col-span-1 text-sm font-medium text-muted-foreground">Risk</div>
+              <div className="col-span-1 text-sm font-medium text-muted-foreground">Return</div>
+              <div className="col-span-1 text-sm font-medium text-muted-foreground">Time Left</div>
+              <div className="col-span-1 text-sm font-medium text-muted-foreground">Volume</div>
+              <div className="col-span-2 text-sm font-medium text-muted-foreground">Votes (YES/NO)</div>
+              <div className="col-span-4 text-sm font-medium text-muted-foreground ml-5">Actions</div>
+            </div>
+            
+            {/* Strategy Rows */}
             {filteredAndSortedStrategies.map((strategy) => (
               <div
                 key={strategy.id}
-                className="flex items-center justify-between p-4 border border-border/50 rounded-lg hover:bg-accent/50 transition-colors"
+                className="grid grid-cols-12 gap-2 p-4 border border-border/50 rounded-lg hover:bg-accent/50 transition-colors"
               >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-shrink-0">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          {
-                            low: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
-                            medium:
-                              "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
-                            high: "bg-red-500/20 text-red-400 border border-red-500/30",
-                          }[strategy.risk]
-                        }`}
-                      >
-                        {strategy.risk.charAt(0).toUpperCase() +
-                          strategy.risk.slice(1)}{" "}
-                        Risk
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2">
-                        <p className="text-sm font-medium text-foreground truncate">
-                          {truncateAddress(strategy.trader)}
-                        </p>
-                        <span className="text-xs text-muted-foreground">·</span>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {strategy.objective}
-                        </p>
-                      </div>
-                    </div>
+                {/* Trader / Objective */}
+                <div className="col-span-2">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {truncateAddress(strategy.trader)}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      +{strategy.objective}%
+                    </p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-10">
-                    <span
-                      className={`text-sm font-medium ${
-                        strategy.currentReturn >= 0
-                          ? "text-green-500"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {strategy.currentReturn > 0 ? "+" : ""}
-                      {strategy.currentReturn.toFixed(1)}%
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {formatTimeRemaining(strategy.deadline)}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      Vol: {formatCurrency(strategy.totalBets)}
-                    </span>
-                  </div>
-                  <div className="space-y-3 w-full">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        YES/NO Votes
-                      </span>
-                      <span className="font-bold">
+                
+                {/* Risk */}
+                <div className="col-span-1">
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      {
+                        low: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
+                        medium: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
+                        high: "bg-red-500/20 text-red-400 border border-red-500/30",
+                      }[strategy.risk]
+                    }`}
+                  >
+                    {strategy.risk.charAt(0).toUpperCase() + strategy.risk.slice(1)}
+                  </span>
+                </div>
+                
+                {/* Return */}
+                <div className="col-span-1">
+                  <span
+                    className={`text-sm font-medium ${
+                      strategy.currentReturn >= 0 ? "text-green-500" : "text-red-600"
+                    }`}
+                  >
+                    {strategy.currentReturn > 0 ? "+" : ""}
+                    {strategy.currentReturn.toFixed(1)}%
+                  </span>
+                </div>
+                
+                {/* Time Left */}
+                <div className="col-span-1">
+                  <span className="text-xs text-muted-foreground">
+                    {formatTimeRemaining(strategy.deadline)}
+                  </span>
+                </div>
+                
+                {/* Volume */}
+                <div className="col-span-1">
+                  <span className="text-xs text-muted-foreground">
+                    {formatCurrency(strategy.totalBets)}
+                  </span>
+                </div>
+                
+                {/* Votes */}
+                <div className="col-span-2">
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-medium">
                         {strategy.votesYes}% / {strategy.votesNo}%
                       </span>
                     </div>
                     <div className="relative">
-                      <Progress value={strategy.votesYes} className="h-3" />
+                      <Progress value={strategy.votesYes} className="h-2" />
                       <div className="absolute inset-0 rounded-full bg-gradient-to-r from-green-500/20 to-red-500/20 pointer-events-none" />
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <div
-                          key={i}
-                          className={`w-1 h-1 rounded-full mx-0.5 ${
-                            i < Math.floor(strategy.traderReputation / 20)
-                              ? "bg-primary"
-                              : "bg-muted"
-                          }`}
-                        />
-                      ))}
+                </div>
+                
+                
+                {/* Actions */}
+                <div className="col-span-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2 px-5">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="w-16 relative overflow-hidden group bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 border-0 font-bold text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
+                      >
+                        <span className="relative z-10 flex items-center justify-center space-x-1">
+                          <span className="text-sm">✓</span>
+                          <span className="text-xs">YES</span>
+                        </span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-16 relative overflow-hidden group border-2 border-red-500/60 text-red-400 hover:text-white hover:border-red-400 font-bold bg-red-500/5 hover:bg-gradient-to-r hover:from-red-500 hover:to-red-600 transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
+                      >
+                        <span className="relative z-10 flex items-center justify-center space-x-1">
+                          <span className="text-sm">✗</span>
+                          <span className="text-xs">NO</span>
+                        </span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                      </Button>
                     </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="default"
-                      size="sm"
-                      className="flex-1 relative overflow-hidden group bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 border-0 font-bold text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
-                    >
-                      <span className="relative z-10 flex items-center justify-center space-x-2">
-                        <span className="text-lg">✓</span>
-                        <span>BET YES</span>
-                      </span>
-                      <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                      <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 relative overflow-hidden group border-2 border-red-500/60 text-red-400 hover:text-white hover:border-red-400 font-bold bg-red-500/5 hover:bg-gradient-to-r hover:from-red-500 hover:to-red-600 transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
-                    >
-                      <span className="relative z-10 flex items-center justify-center space-x-2">
-                        <span className="text-lg">✗</span>
-                        <span>BET NO</span>
-                      </span>
-                      <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                      <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                    </Button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="group hover:bg-primary/10 hover:text-primary transition-all duration-200"
+                        >
+                          <Eye className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                          <span className="ml-1 text-xs">See more</span>
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl border-0 bg-gradient-to-br from-background via-background to-accent/5">
+                        <DialogHeader className="border-b border-border/20 pb-6">
+                          <DialogTitle className="text-2xl font-bold text-center">
+                            <div className="flex items-center justify-center space-x-3">
+                              <div className="relative">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-primary/20 to-primary/30 flex items-center justify-center border border-primary/30">
+                                  <span className="text-xl font-bold text-primary">{strategy.trader.slice(2, 4).toUpperCase()}</span>
+                                </div>
+                                <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-green-500 border-2 border-background animate-pulse"></div>
+                              </div>
+                              <div className="text-left">
+                                <div className="text-lg font-semibold">Strategy Details</div>
+                                <div className="text-sm text-muted-foreground font-mono">{truncateAddress(strategy.trader)}</div>
+                              </div>
+                            </div>
+                          </DialogTitle>
+                        </DialogHeader>
+                        
+                        <div className="space-y-8 p-1">
+                          {/* Key Metrics Row */}
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="group relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-green-500/5 to-green-600/10 border border-green-500/20 hover:border-green-500/40 transition-all duration-300">
+                              <div className="absolute top-0 right-0 w-20 h-20 bg-green-500/5 rounded-full -translate-y-10 translate-x-10"></div>
+                              <div className="relative">
+                                <div className="flex items-center space-x-2 mb-3">
+                                  <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+                                    <span className="text-green-500 text-lg">📈</span>
+                                  </div>
+                                  <p className="text-sm font-medium text-muted-foreground">Return</p>
+                                </div>
+                                <p className={`text-3xl font-bold ${strategy.currentReturn >= 0 ? "text-green-500" : "text-red-500"}`}>
+                                  {strategy.currentReturn > 0 ? "+" : ""}{strategy.currentReturn.toFixed(1)}%
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="group relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-blue-500/5 to-blue-600/10 border border-blue-500/20 hover:border-blue-500/40 transition-all duration-300">
+                              <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/5 rounded-full -translate-y-10 translate-x-10"></div>
+                              <div className="relative">
+                                <div className="flex items-center space-x-2 mb-3">
+                                  <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                                    <span className="text-blue-500 text-lg">💰</span>
+                                  </div>
+                                  <p className="text-sm font-medium text-muted-foreground">Volume</p>
+                                </div>
+                                <p className="text-3xl font-bold text-blue-500">{formatCurrency(strategy.totalBets)}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="group relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-orange-500/5 to-orange-600/10 border border-orange-500/20 hover:border-orange-500/40 transition-all duration-300">
+                              <div className="absolute top-0 right-0 w-20 h-20 bg-orange-500/5 rounded-full -translate-y-10 translate-x-10"></div>
+                              <div className="relative">
+                                <div className="flex items-center space-x-2 mb-3">
+                                  <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                                    <span className="text-orange-500 text-lg">⏰</span>
+                                  </div>
+                                  <p className="text-sm font-medium text-muted-foreground">Time Left</p>
+                                </div>
+                                <p className="text-3xl font-bold text-orange-500">{formatTimeRemaining(strategy.deadline)}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="group relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-purple-500/5 to-purple-600/10 border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300">
+                              <div className="absolute top-0 right-0 w-20 h-20 bg-purple-500/5 rounded-full -translate-y-10 translate-x-10"></div>
+                              <div className="relative">
+                                <div className="flex items-center space-x-2 mb-3">
+                                  <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                                    <span className="text-purple-500 text-lg">⭐</span>
+                                  </div>
+                                  <p className="text-sm font-medium text-muted-foreground">Reputation</p>
+                                </div>
+                                <div className="flex items-center space-x-3">
+                                  <p className="text-3xl font-bold text-purple-500">{strategy.traderReputation}%</p>
+                                  <div className="flex space-x-1">
+                                    {[...Array(5)].map((_, i) => (
+                                      <div
+                                        key={i}
+                                        className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                                          i < Math.floor(strategy.traderReputation / 20)
+                                            ? "bg-purple-500 scale-110"
+                                            : "bg-muted scale-90"
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Strategy Info */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="rounded-xl p-6 bg-gradient-to-br from-accent/30 to-accent/10 border border-border/30">
+                              <div className="flex items-center space-x-3 mb-4">
+                                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                  <span className="text-xl">🎯</span>
+                                </div>
+                                <h3 className="text-xl font-semibold">Strategy Objective</h3>
+                              </div>
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between p-3 bg-background/50 rounded-lg border border-border/20">
+                                  <span className="text-muted-foreground">Target Return</span>
+                                  <span className="text-2xl font-bold text-primary">+{strategy.objective}%</span>
+                                </div>
+                                <div className="flex items-center justify-between p-3 bg-background/50 rounded-lg border border-border/20">
+                                  <span className="text-muted-foreground">Risk Level</span>
+                                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                    {
+                                      low: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
+                                      medium: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
+                                      high: "bg-red-500/20 text-red-400 border border-red-500/30",
+                                    }[strategy.risk]
+                                  }`}>
+                                    {strategy.risk.charAt(0).toUpperCase() + strategy.risk.slice(1)} Risk
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="rounded-xl p-6 bg-gradient-to-br from-accent/30 to-accent/10 border border-border/30">
+                              <div className="flex items-center space-x-3 mb-4">
+                                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                  <span className="text-xl">🗳️</span>
+                                </div>
+                                <h3 className="text-xl font-semibold">Voting Status</h3>
+                              </div>
+                              <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-2">
+                                    <div className="w-4 h-4 rounded-full bg-green-500"></div>
+                                    <span className="font-medium">YES Votes</span>
+                                  </div>
+                                  <span className="text-2xl font-bold text-green-500">{strategy.votesYes}%</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-2">
+                                    <div className="w-4 h-4 rounded-full bg-red-500"></div>
+                                    <span className="font-medium">NO Votes</span>
+                                  </div>
+                                  <span className="text-2xl font-bold text-red-500">{strategy.votesNo}%</span>
+                                </div>
+                                <div className="relative mt-4">
+                                  <Progress value={strategy.votesYes} className="h-3" />
+                                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-green-500/20 to-red-500/20 pointer-events-none" />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Description */}
+                          <div className="rounded-xl p-6 bg-gradient-to-br from-accent/30 to-accent/10 border border-border/30">
+                            <div className="flex items-center space-x-3 mb-4">
+                              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <span className="text-xl">📝</span>
+                              </div>
+                              <h3 className="text-xl font-semibold">Strategy Description</h3>
+                            </div>
+                            <p className="text-base text-muted-foreground leading-relaxed">
+                              {strategy.description}
+                            </p>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </div>
               </div>
