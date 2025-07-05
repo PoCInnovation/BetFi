@@ -14,7 +14,7 @@ contract ProposeStrategyScript is Script {
     address constant AUSD = 0x00000000eFE302BEAA2b3e6e1b18d08D69a9012a; // Address of AUSD token
 
     uint256 constant OBJECTIVE_PERCENT = 500; // 5% (in basis points)
-    uint256 constant DURATION = 5 minutes; // Duration in seconds
+    uint256 constant DURATION = 1 minutes; // Duration in seconds
     uint256 constant COMMISSION = 500; // 1% (in basis points)
 
     function run() external {

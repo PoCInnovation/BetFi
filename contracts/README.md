@@ -15,7 +15,7 @@ commands to do a full user flow:
 create a new strategy:
 
 ```
-forge script ./contracts/script/ProposeStrategy.s.sol:ProposeStrategyScript --rpc-url https://rpc.katana.network/ --broadcast --private-key $PRIVATE_KEY
+forge script ./contracts/script/ProposeStrategy.s.sol:ProposeStrategyScript --via-ir --rpc-url https://rpc.katana.network/ --broadcast --private-key $PRIVATE_KEY
 ```
 
 approve the ausd to place bets:

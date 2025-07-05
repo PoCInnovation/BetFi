@@ -9,11 +9,13 @@ contract StrategyFactory {
     event StrategyProposed(address indexed trader, address strategyBet, address[] vaults, uint256[] amounts, address[] tokens);
 
     address public ausd; // Address of AUSD token
+    address public ausdVault; // Address of AUSD vault
 
     address[] public allStrategies;
 
-    constructor(address _ausd) {
+    constructor(address _ausd, address _ausdVault) {
         ausd = _ausd;
+        ausdVault = _ausdVault;
     }
 
     function proposeStrategy(
@@ -29,6 +31,7 @@ contract StrategyFactory {
             require(IERC20(tokens[i]).allowance(address(msg.sender), address(this)) == amounts[i] && IERC20(tokens[i]).balanceOf(address(msg.sender)) >= amounts[i], "Token amount invalid");
             require(IERC4626(vaults[i]).maxDeposit(address(this)) >= amounts[i], "Vault max deposit below amount");
             require(IERC4626(vaults[i]).asset() == tokens[i], "Vault asset mismatch");
+            require(vaults[i] != ausdVault, "Vault cannot be the AUSD vault");
         }
 
         // Deploy the StrategyBet contract
@@ -41,7 +44,8 @@ contract StrategyFactory {
             objectivePercent,
             duration,
             commission,
-            address(this)
+            address(this),
+            ausdVault
         );
 
         for (uint256 i = 0; i < tokens.length; i++) {
@@ -55,10 +59,6 @@ contract StrategyFactory {
         allStrategies.push(address(bet));
         emit StrategyProposed(msg.sender, address(bet), vaults, amounts, tokens);
         return address(bet);
-    }
-
-    function sum(uint256[] memory arr) internal pure returns (uint256 s) {
-        for (uint i = 0; i < arr.length; i++) s += arr[i];
     }
 
     function getAllStrategies() external view returns (address[] memory) {
