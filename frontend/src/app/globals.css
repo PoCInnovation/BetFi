@@ -75,3 +75,47 @@
     transform: translateY(-2px);
   }
 }
+
+.glow-effect-button {
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    background-color 0.3s,
+    transform 0.3s;
+}
+
+.glow-effect-button:hover {
+  transform: scale(1.03);
+}
+
+.glow-effect-button::before {
+  content: '';
+  position: absolute;
+  top: -150%;
+  left: -150%;
+  width: 30px;
+  height: 400%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.6),
+    transparent
+  );
+  z-index: 2;
+  transform: rotate(45deg);
+  filter: blur(7px);
+  animation: glow-sweep 3s infinite;
+}
+
+@keyframes glow-sweep {
+  0% {
+    left: -150%;
+  }
+  50% {
+    left: 150%;
+  }
+  100% {
+    left: 150%;
+  }
+}
