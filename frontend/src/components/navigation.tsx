@@ -15,18 +15,18 @@ const Navigation = () => {
   ];
 
   return (
-    <nav className="bg-card border-b border-border backdrop-blur-sm bg-opacity-90">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2 group">
-              <TrendingUp className="h-8 w-8 text-primary group-hover:glow-green transition-all duration-300" />
-              <span className="text-xl font-bold bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
+    <div className="w-full flex justify-center py-8 px-4">
+      <div className="relative">
+        <nav className="shadow-primary/10 inset-4 shadow-xl relative bg-card/90 backdrop-blur-xl border border-border/50 rounded-2xl px-12 py-4 min-w-[600px] max-w-4xl">
+          <div className="flex items-center justify-between w-full">
+            <Link href="/" className="flex items-center space-x-3 group">
+              <TrendingUp className="h-8 w-8 text-primary group-hover:scale-110 transition-all duration-300" />
+              <span className="text-2xl font-bold bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
                 BetFi
               </span>
             </Link>
-          </div>
-          <div className="flex space-x-4">
+          
+          <div className="flex space-x-6">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -34,10 +34,10 @@ const Navigation = () => {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                    "relative px-1 flex items-center space-x-2 py-3 text-sm font-medium transition-all duration-300 group",
                     isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                      ? "border-b-2 border-primary/65"
+                      : "text-muted-foreground hover:border-b-2 hover:border-primary/30"
                   )}
                 >
                   <item.icon className="h-4 w-4" />
@@ -46,9 +46,10 @@ const Navigation = () => {
               );
             })}
           </div>
-        </div>
+          </div>
+        </nav>
       </div>
-    </nav>
+    </div>
   );
 };
 
