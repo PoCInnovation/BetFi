@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { useAIService } from "@/services/ai-service";
 
 interface Message {
   id: string;
@@ -19,6 +20,11 @@ interface Position {
   y: number;
 }
 
+// Maximum number of messages to keep in the chat history
+// When this limit is reached, older messages will fade out and disappear
+// Setting to 6 (3 exchanges) for better UX with limited space
+const MAX_MESSAGES = 6;
+
 const FloatingChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -30,6 +36,7 @@ const FloatingChatbot = () => {
   const [hasDragged, setHasDragged] = useState(false);
   const chatbotRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -40,27 +47,19 @@ const FloatingChatbot = () => {
     }
   ]);
   const [inputValue, setInputValue] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>(['Tell me about strategies', 'How do I start?', 'Explain risks']);
+  
+  // Use our AI service hook
+  const { sendMessage, isLoading, error } = useAIService();
+  
+  // Display error in console if any
+  useEffect(() => {
+    if (error) {
+      console.error("AI Service Error:", error);
+    }
+  }, [error]);
 
-  const generateAIResponse = (userMessage: string): string => {
-    const lowerMessage = userMessage.toLowerCase();
-    
-    if (lowerMessage.includes('bet') || lowerMessage.includes('recommend') || lowerMessage.includes('strategy')) {
-      return "Based on current market analysis:\n\n• **SafeTrader**: Excellent reputation (95/100) with conservative approach\n• **TechAnalyst**: Strong performance (+9.8%) with solid technical analysis\n• **DefiMaster**: DeFi arbitrage with controlled risk\n\nI recommend diversifying and starting with smaller amounts.";
-    }
-    
-    if (lowerMessage.includes('risk') || lowerMessage.includes('safe')) {
-      return "To minimize risks:\n\n• Choose traders with high reputation (>90/100)\n• Diversify across multiple strategies\n• Start with small amounts\n• Avoid strategies promising >20% returns\n• Check trader history before betting";
-    }
-    
-    if (lowerMessage.includes('best') || lowerMessage.includes('top')) {
-      return "Top performing strategies right now:\n\n• **TechAnalyst**: +9.8% current return\n• **SafeTrader**: +4.8% with low risk\n• **CryptoWizard**: +8.5% but higher risk\n\nKey factors: trader reputation, current performance, and time remaining.";
-    }
-    
-    return "I can help you analyze available strategies, assess risks, and provide personalized recommendations. What specific aspect of trading strategies would you like to know about?";
-  };
-
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
     const userMessage: Message = {
@@ -70,22 +69,69 @@ const FloatingChatbot = () => {
       timestamp: new Date().toISOString(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const userInput = inputValue;
+    // Strictly enforce the message limit when adding new messages
+    // This ensures messages stay below the search bar by removing older ones
+    
+    // First, check if we need to remove messages to stay under limit
+    // We'll need to accommodate both the user message and the upcoming AI response
+    const needToRemove = messages.length + 2 > MAX_MESSAGES;
+    const removeCount = needToRemove ? messages.length + 2 - MAX_MESSAGES : 0;
+    
+    // Add the user message, potentially removing old messages
+    setMessages(prev => {
+      const filtered = removeCount > 0 ? prev.slice(removeCount) : prev;
+      return [...filtered, userMessage];
+    });
+    
     setInputValue("");
-    setIsLoading(true);
-
-    setTimeout(() => {
-      const aiResponse = generateAIResponse(inputValue);
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'ai',
-        content: aiResponse,
-        timestamp: new Date().toISOString(),
-      };
-
-      setMessages(prev => [...prev, aiMessage]);
-      setIsLoading(false);
-    }, 1000);
+    
+    // Create a placeholder for the streaming message
+    const streamingId = (Date.now() + 1).toString();
+    const streamingMessage: Message = {
+      id: streamingId,
+      type: 'ai',
+      content: '',
+      timestamp: new Date().toISOString(),
+    };
+    
+    // Add the AI message placeholder, which should always fit now
+    setMessages(prev => [...prev, streamingMessage]);
+    
+    try {
+      // Call our AI service with streaming callback
+      const aiResponse = await sendMessage(userInput, (streamText) => {
+        // Update the streaming message in place
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === streamingId ? { ...msg, content: streamText } : msg
+          )
+        );
+      });
+      
+      // Update suggestions from AI response
+      if (aiResponse.suggestions && aiResponse.suggestions.length > 0) {
+        setSuggestions(aiResponse.suggestions);
+        console.log("Updated suggestions:", aiResponse.suggestions);
+      }
+      
+      // If there was an error but we still got a response (using fallback)
+      if (aiResponse.error) {
+        console.warn("AI responded with fallback due to error:", aiResponse.error);
+      }
+    } catch (err) {
+      console.error("Error getting AI response:", err);
+      
+      // This should rarely happen now since our AI service handles errors internally
+      // and provides fallback responses, but keeping as an extra safety measure
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.id === streamingId 
+            ? { ...msg, content: "Sorry, I'm having trouble responding right now. Please try again later." } 
+            : msg
+        )
+      );
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -178,6 +224,21 @@ const FloatingChatbot = () => {
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDragging, dragOffset.x, dragOffset.y, isOpen]);
+
+  // Auto-scroll to bottom when messages change and manage message limit
+  useEffect(() => {
+    // Auto-scroll to bottom - force immediate scroll for best user experience
+    if (messagesEndRef.current) {
+      // Using scrollIntoView with behavior: 'auto' for immediate scrolling
+      messagesEndRef.current.scrollIntoView({ behavior: 'auto' });
+    }
+    
+    // Strictly enforce the message limit with each message change
+    if (messages.length > MAX_MESSAGES) {
+      // Immediately remove excess messages - no delay
+      setMessages(prev => prev.slice(prev.length - MAX_MESSAGES));
+    }
+  }, [messages]);
 
   // Position initiale et ajustements
   useEffect(() => {
@@ -293,7 +354,7 @@ const FloatingChatbot = () => {
           )}
         >
           <Card className={cn(
-            "crypto-card border-2 border-primary/20 shadow-2xl h-full flex flex-col",
+            "crypto-card border-2 border-primary/20 shadow-2xl h-full flex flex-col overflow-hidden",
             "transition-all duration-200 ease-out"
           )}>
             <CardHeader 
@@ -321,31 +382,47 @@ const FloatingChatbot = () => {
               </CardTitle>
             </CardHeader>
             
-            <CardContent className="p-0 flex-1 flex flex-col">
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                {messages.map((message) => (
+            <CardContent className="p-0 flex-1 flex flex-col overflow-hidden relative">
+              {/* Messages container with auto overflow and fixed height */}
+              <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 pb-0 space-y-4 relative max-h-[calc(100%-140px)] scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+                {/* Stronger top fade effect - using sticky to ensure it stays at top during scroll */}
+                <div className="sticky top-0 left-0 right-0 h-16 bg-gradient-to-b from-card to-transparent z-10 pointer-events-none -mt-4 mb-[-16px]"></div>
+                
+                {/* Bottom shadow to indicate scroll area - using sticky to ensure it stays at bottom during scroll */}
+                <div className="sticky bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-card via-card/80 to-transparent z-10 pointer-events-none mt-[-8px]"></div>
+                
+                {messages.map((message, index) => (
                   <div
                     key={message.id}
                     className={cn(
-                      "flex",
-                      message.type === 'user' ? 'justify-end' : 'justify-start'
+                      "flex transition-all duration-300",
+                      message.type === 'user' ? 'justify-end' : 'justify-start',
+                      // Simplified animations - just fade new messages in
+                      index === messages.length - 1 
+                        ? 'animate-in fade-in-0 slide-in-from-bottom-3 duration-300' 
+                        : ''
                     )}
                   >
                     <div
                       className={cn(
-                        "max-w-[85%] p-3 rounded-2xl text-sm",
+                        "max-w-[85%] p-3 rounded-2xl text-sm break-words",
                         message.type === 'user'
                           ? 'bg-gradient-to-r from-primary to-red-500 text-white ml-4'
                           : 'bg-muted text-foreground mr-4'
                       )}
                     >
-                      <div className="whitespace-pre-line">{message.content}</div>
+                      <div className="whitespace-pre-line overflow-hidden">
+                        {message.content}
+                        {/* Show cursor at the end when streaming */}
+                        {message.type === 'ai' && isLoading && message.id === messages[messages.length - 1]?.id && (
+                          <span className="ml-1 inline-block w-2 h-4 bg-primary animate-pulse" />
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
                 
-                {isLoading && (
+                {isLoading && messages[messages.length - 1]?.type !== 'ai' && (
                   <div className="flex justify-start animate-in slide-in-from-bottom-2 fade-in-0 duration-300">
                     <div className="bg-muted text-foreground max-w-[85%] p-3 rounded-2xl mr-4 animate-pulse">
                       <div className="flex items-center space-x-2">
@@ -359,10 +436,35 @@ const FloatingChatbot = () => {
                     </div>
                   </div>
                 )}
+                {/* Scroll anchor with enough height to ensure proper scrolling past the fade */}
+                <div ref={messagesEndRef} className="h-10 mb-4" />
               </div>
 
-              {/* Input */}
-              <div className="p-4 border-t border-border bg-card/50">
+              {/* Input - fixed height for consistent layout with shadow overlay */}
+              <div className="p-4 pt-2 border-t border-border bg-card/90 mt-auto relative z-20">
+                {/* Suggestion buttons */}
+                {messages.length > 0 && messages[messages.length - 1].type === 'ai' && !isLoading && (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {suggestions.map((suggestion, index) => (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs py-1 px-2 h-auto bg-muted/40 hover:bg-muted/80 border-primary/20 text-muted-foreground hover:text-foreground transition-all"
+                        onClick={() => {
+                          setInputValue(suggestion);
+                          // Optional: auto-send after a short delay
+                          setTimeout(() => {
+                            handleSendMessage();
+                          }, 100);
+                        }}
+                      >
+                        {suggestion}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+                
                 <div className="flex space-x-2">
                   <Input
                     value={inputValue}
