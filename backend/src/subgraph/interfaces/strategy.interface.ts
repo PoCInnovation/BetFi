@@ -8,4 +8,7 @@ export interface Strategy {
   votesYes: number;
   votesNo: number;
   status: 'active' | 'completed';
+  description: string;
+  traderReputation: number;
+  risk: 'low' | 'medium' | 'high';
 }

@@ -34,3 +34,6 @@ BetFi is a betting plateform on Katana that allows users to bet on the success o
 ## Smart Contracts
 The protocol is powered by a set of smart contracts that manage strategy creation, execution, betting, and resolution. For a detailed explanation of the contract architecture and logic, see the [contracts/README.md](contracts/README.md).
 
+
+pierrelissope
+feEDA0tliqsrfLNv

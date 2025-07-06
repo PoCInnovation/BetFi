@@ -1,9 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Plus,
   Target,
@@ -14,6 +21,7 @@ import {
 } from "lucide-react";
 import { useProposeStrategy } from "@/lib/propose-strategy";
 import { useToast } from "@/hooks/use-toast";
+import { useAccount } from 'wagmi';
 import { truncateAddress } from "@/lib/mock-data";
 
 interface VaultConfig {
@@ -24,9 +32,10 @@ interface VaultConfig {
 }
 
 export default function CreateStrategyPage() {
-  const { executeFunction, isPending, isConfirming, isConfirmed } =
+  const { executeFunction, isPending, isConfirming, isConfirmed, error } =
     useProposeStrategy();
   const { toast } = useToast();
+  const { address } = useAccount();
 
   const [vaults, setVaults] = useState<VaultConfig[]>([
     { id: "1", address: "", tokenAddress: "", amount: 0 },
@@ -34,7 +43,52 @@ export default function CreateStrategyPage() {
   const [objectivePercent, setObjectivePercent] = useState<number>(15);
   const [durationDays, setDurationDays] = useState<number>(2);
   const [commission, setCommission] = useState<number>(10);
+  const [risk, setRisk] = useState<'low' | 'medium' | 'high'>('medium');
   const [description, setDescription] = useState("");
+  const [hasCalledBackend, setHasCalledBackend] = useState(false);
+
+  // Call backend when transaction is confirmed
+  useEffect(() => {
+    if (isConfirmed && !hasCalledBackend) {
+      const saveToBackend = async () => {
+        try {
+          const strategyData = {
+            id: ``, // TODO return of the contract call
+            trader: address || 'unknown',
+            objective: objectivePercent,
+            deadline: durationDays * 24 * 60 * 60 + Math.floor(Date.now() / 1000),
+            currentReturn: 0,
+            totalBets: 0,
+            votesYes: 0,
+            votesNo: 0,
+            status: 'active' as const,
+            description,
+            traderReputation: 50,
+            risk
+          };
+
+          const response = await fetch('http://localhost:3000/subgraph/strategies', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(strategyData),
+          });
+
+          if (response.ok) {
+            toast.success('Strategy created successfully!', 'Your strategy has been saved to the backend.');
+          } else {
+            console.error('Failed to save strategy to backend');
+          }
+        } catch (backendError) {
+          console.error('Backend call failed:', backendError);
+        }
+        setHasCalledBackend(true);
+      };
+
+      saveToBackend();
+    }
+  }, [isConfirmed, hasCalledBackend, objectivePercent, durationDays, description, risk, toast]);
 
   // Add new vault
   const addVault = () => {
@@ -131,7 +185,7 @@ export default function CreateStrategyPage() {
       const durationTimestamp =
         Math.floor(Date.now() / 1000) + votingPeriod + executionPeriod;
 
-      await executeFunction(
+      const contractResult = await executeFunction(
         vaultAddresses,
         amounts,
         tokens,
@@ -139,6 +193,7 @@ export default function CreateStrategyPage() {
         durationTimestamp,
         commission
       );
+
     } catch (error) {
       console.error("Strategy creation failed:", error);
     }
@@ -250,12 +305,12 @@ export default function CreateStrategyPage() {
                               </label>
                               <Input
                                 type="number"
-                                value={vault.amount}
+                                value={vault.amount === 0 ? '' : vault.amount}
                                 onChange={(e) =>
                                   updateVault(
                                     vault.id,
                                     "amount",
-                                    parseFloat(e.target.value) || 0
+                                    e.target.value === '' ? 0 : parseFloat(e.target.value) || 0
                                   )
                                 }
                                 placeholder="0.0"
@@ -282,9 +337,9 @@ export default function CreateStrategyPage() {
                         </label>
                         <Input
                           type="number"
-                          value={objectivePercent}
+                          value={objectivePercent === 0 ? '' : objectivePercent}
                           onChange={(e) =>
-                            setObjectivePercent(parseFloat(e.target.value) || 0)
+                            setObjectivePercent(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)
                           }
                           placeholder="15"
                           min="0.1"
@@ -304,9 +359,9 @@ export default function CreateStrategyPage() {
                         </label>
                         <Input
                           type="number"
-                          value={durationDays}
+                          value={durationDays === 0 ? '' : durationDays}
                           onChange={(e) =>
-                            setDurationDays(parseInt(e.target.value) || 0)
+                            setDurationDays(e.target.value === '' ? 0 : parseInt(e.target.value) || 0)
                           }
                           placeholder="2"
                           min="1"
@@ -325,9 +380,9 @@ export default function CreateStrategyPage() {
                         </label>
                         <Input
                           type="number"
-                          value={commission}
+                          value={commission === 0 ? '' : commission}
                           onChange={(e) =>
-                            setCommission(parseFloat(e.target.value) || 0)
+                            setCommission(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)
                           }
                           placeholder="10"
                           min="0"
@@ -339,6 +394,30 @@ export default function CreateStrategyPage() {
                           Your commission on profits
                         </p>
                       </div>
+                    </div>
+
+                    {/* Risk Level */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium flex items-center space-x-1">
+                        <TrendingUp className="h-4 w-4" />
+                        <span>Risk Level</span>
+                      </label>
+                      <Select
+                        value={risk}
+                        onValueChange={(value) => setRisk(value as 'low' | 'medium' | 'high')}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select risk level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Low Risk</SelectItem>
+                          <SelectItem value="medium">Medium Risk</SelectItem>
+                          <SelectItem value="high">High Risk</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Risk level of your trading strategy
+                      </p>
                     </div>
                   </div>
 
