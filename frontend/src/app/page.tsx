@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, X, Eye } from "lucide-react";
 import {
   formatCurrency,
   formatTimeRemaining,
-  mockStrategies,
   truncateAddress,
 } from "@/lib/mock-data";
 import { Input } from "@/components/ui/input";
@@ -27,6 +26,22 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+interface Strategy {
+  id: string;
+  trader: string;
+  objective: number;
+  deadline: number;
+  currentReturn: number;
+  totalBets: number;
+  votesYes: number;
+  votesNo: number;
+  status: 'active' | 'completed';
+  description: string;
+  traderReputation: number;
+  risk: 'low' | 'medium' | 'high';
+  createdAt?: string | number;
+}
+
 interface FilterState {
   status: string;
   risk: string;
@@ -37,6 +52,9 @@ interface FilterState {
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [strategies, setStrategies] = useState<Strategy[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<FilterState>({
     status: "all",
     risk: "all",
@@ -45,34 +63,30 @@ export default function Home() {
     sortBy: "default",
   });
 
+  useEffect(() => {
+    const fetchStrategies = async () => {
+      try {
+        console.log(process.env.NEXT_PUBLIC_API_URL)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/subgraph/strategies`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch strategies');
+        }
+        const data = await response.json();
+        console.log('Received strategies:', data);
+        console.log('Filters:', filters);
+        setStrategies(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+    setSearchTerm(""); 
+    fetchStrategies();
+  }, []);
+
   const filteredAndSortedStrategies = useMemo(() => {
-    let filtered = mockStrategies.filter((strategy) => {
-      // Search term filter
-      const matchesSearch =
-        strategy.trader.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        strategy.objective.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
-        strategy.description.toLowerCase().includes(searchTerm.toLowerCase());
-
-      // Status filter
-      const matchesStatus =
-        filters.status === "all" || strategy.status === filters.status;
-
-      // Risk filter
-      const matchesRisk =
-        filters.risk === "all" || strategy.risk === filters.risk;
-
-      // Vote filters
-      const matchesYesVotes = strategy.votesYes >= filters.minYesVotes;
-      const matchesNoVotes = strategy.votesNo >= filters.minNoVotes;
-
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesRisk &&
-        matchesYesVotes &&
-        matchesNoVotes
-      );
-    });
+    let filtered = strategies;
 
     // Sorting
     switch (filters.sortBy) {
@@ -251,7 +265,7 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <p className="text-muted-foreground">
               Showing {filteredAndSortedStrategies.length} of{" "}
-              {mockStrategies.length} strategies
+              {strategies.length} strategies
             </p>
             {activeFiltersCount > 0 && (
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
@@ -286,7 +300,20 @@ export default function Home() {
         </div>
 
         {/* Strategy Table */}
-        {filteredAndSortedStrategies.length > 0 ? (
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading strategies...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12 border border-border/50 rounded-lg">
+            <div className="text-red-500 text-lg mb-4">Error loading strategies</div>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()} variant="outline">
+              Retry
+            </Button>
+          </div>
+        ) : filteredAndSortedStrategies.length > 0 ? (
           <div className="space-y-4">
             {/* Header */}
             <div className="grid grid-cols-12 gap-2 p-4 bg-muted/30 rounded-lg border border-border/50">

@@ -1,4 +1,4 @@
-import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi'
+import { useWriteContract, useWaitForTransactionReceipt, useAccount, UseWriteContractReturnType } from 'wagmi'
 import strategyFactoryAbi from '@/abis/StrategyFactory.json'
 import { useToast } from '@/hooks/use-toast'
 

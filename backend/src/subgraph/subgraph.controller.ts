@@ -12,7 +12,7 @@ export class SubgraphController {
   @Post('strategies')
   async postStrategies(@Body() body: CreateStrategyDto) {
     this.logger.log('Creating a new strategy');
-    return await this.subgraphService.storeStrategy(body);
+    return await this.subgraphService.storeStrategyInSupabase(body);
   }
 
   @Get('strategies')

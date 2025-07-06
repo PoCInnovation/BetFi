@@ -1,9 +1,8 @@
-//066fe03ce1f6fa771749d598bebf1d624823635372b3121e31a4f475f5d16d83
-
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { Strategy } from './interfaces/strategy.interface';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { getSmartAccountWalletClient } from '@graphprotocol/grc-20';
 import { getWalletClient, Graph, Ipfs, Op } from '@graphprotocol/grc-20';
 import {
@@ -76,6 +75,7 @@ const GET_STRATEGIES_BY_TRADER = `
 export class SubgraphService implements OnModuleInit {
   private readonly logger = new Logger(SubgraphService.name);
   private readonly subgraphUrl: string;
+  private readonly supabaseClient: SupabaseClient<any, 'public'>;
 
   constructor(private configService: ConfigService) {
     this.subgraphUrl = this.configService.get<string>(
@@ -83,6 +83,7 @@ export class SubgraphService implements OnModuleInit {
       'https://api.studio.thegraph.com/query/115527/strategy-factory/version/latest',
     );
     this.logger.log(`Initialized with subgraph URL: ${this.subgraphUrl}`);
+     this.supabaseClient = createClient("https://avjgtfjouqsndcbsfjly.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF2amd0ZmpvdXFzbmRjYnNmamx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzAyNDMsImV4cCI6MjA2NzM0NjI0M30.BvrC88nYEgt2wYhJhFgMmycsudrd5CofueIfL1-MiYM")
   }
 
   transformGraphQLResponseToDto(entity: any): AdditionalStrategyDataDto {
@@ -103,35 +104,24 @@ export class SubgraphService implements OnModuleInit {
   }
 
   async getAllAdditionalStrategyData(): Promise<AdditionalStrategyDataDto[]> {
-    try {
-      const response = await fetch(
-        'https://hypergraph-v2-testnet.up.railway.app/space/3f8873d8-f8a4-43de-bbed-d8de16bf090a/graphql',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            query: GET_ALL_STRATEGIES,
-          }),
-        },
-      );
+    const { data, error } = await this.supabaseClient
+      .from('strategies')
+      .select('*');
 
-      if (!response.ok) {
-        throw new Error(`GraphQL request failed: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-
-      if (result.errors) {
-        throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
-      }
-
-      return result.data.entities.map(this.transformGraphQLResponseToDto);
-    } catch (error) {
-      console.error('Error fetching strategies:', error);
-      throw error;
+    if (error) {
+      this.logger.error(`Failed to fetch strategies from Supabase: ${error.message}`);
+      return [];
     }
+
+    // Map Supabase fields to AdditionalStrategyDataDto fields
+    return (data || []).map((item: any) => ({
+      id: item.id,
+      trader: item.trader,
+      status: item.status,
+      description: item.description,
+      risk: item.risk,
+      createdAt: item.created_at,
+    }));
   }
 
   async onModuleInit() {
@@ -302,6 +292,8 @@ export class SubgraphService implements OnModuleInit {
         risk: 'medium',
       };
     });
+    
+     
 
     return onchainStrategiesData.map((onchainStrategy) => {
       const additional = additionalStrategiesData.find(
@@ -444,6 +436,39 @@ export class SubgraphService implements OnModuleInit {
       return []; // Return empty array instead of throwing to prevent 500 error
     }
   }
+
+  
+  async storeStrategyInSupabase(createStrategy: CreateStrategyDto) {
+    try {
+      const { data, error } = await this.supabaseClient
+        .from('strategies')
+        .insert([
+          {
+            id: createStrategy.id,
+            trader: createStrategy.trader,
+            status: createStrategy.status,
+            description: createStrategy.description,
+            risk: createStrategy.risk,
+            created_at: new Date().toISOString(),
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) {
+        this.logger.error(`Failed to store strategy in Supabase: ${error.message}`);
+        throw error;
+      }
+
+      this.logger.log(`Strategy stored in Supabase with ID: ${data.id}`);
+      return data;
+    } catch (err) {
+      this.logger.error(`Error storing strategy in Supabase: ${err.message}`);
+      throw err;
+    }
+    return "Strategy stored successfully in Supabase";
+  }
+
 
   async storeStrategy(createStrategy: CreateStrategyDto) {
     const ops: Array<Op> = [];
