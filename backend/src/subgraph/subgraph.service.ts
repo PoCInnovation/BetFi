@@ -2,6 +2,72 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { Strategy } from './interfaces/strategy.interface';
+import { getWalletClient, Graph, Ipfs, Op } from '@graphprotocol/grc-20';
+import {
+  AdditionalStrategyDataDto,
+  CreateStrategyDto,
+} from './interfaces/strategy.dto';
+
+const GET_ALL_STRATEGIES = `
+  query GetAllStrategies {
+    entities(where: { types: { some: { name: { equals: "Trading Strategy" } } } }) {
+      id
+      name
+      description
+      values {
+        property {
+          name
+        }
+        value
+      }
+      createdAt
+    }
+  }
+`;
+
+const GET_STRATEGY_BY_ID = `
+  query GetStrategyById($id: String!) {
+    entity(where: { id: $id }) {
+      id
+      name
+      description
+      values {
+        property {
+          name
+        }
+        value
+      }
+      createdAt
+    }
+  }
+`;
+
+const GET_STRATEGIES_BY_TRADER = `
+  query GetStrategiesByTrader($trader: String!) {
+    entities(
+      where: { 
+        types: { some: { name: { equals: "Trading Strategy" } } },
+        values: {
+          some: {
+            property: { name: { equals: "Trader" } },
+            value: { equals: $trader }
+          }
+        }
+      }
+    ) {
+      id
+      name
+      description
+      values {
+        property {
+          name
+        }
+        value
+      }
+      createdAt
+    }
+  }
+`;
 
 @Injectable()
 export class SubgraphService implements OnModuleInit {
@@ -9,15 +75,69 @@ export class SubgraphService implements OnModuleInit {
   private readonly subgraphUrl: string;
 
   constructor(private configService: ConfigService) {
-    this.subgraphUrl = this.configService.get<string>('SUBGRAPH_URL', 'https://api.studio.thegraph.com/query/115527/strategy-factory/version/latest');
+    this.subgraphUrl = this.configService.get<string>(
+      'SUBGRAPH_URL',
+      'https://api.studio.thegraph.com/query/115527/strategy-factory/version/latest',
+    );
     this.logger.log(`Initialized with subgraph URL: ${this.subgraphUrl}`);
+  }
+
+  transformGraphQLResponseToDto(entity: any): AdditionalStrategyDataDto {
+    const valuesMap = new Map();
+
+    entity.values?.forEach((val: any) => {
+      valuesMap.set(val.property.name, val.value);
+    });
+
+    return {
+      id: entity.id,
+      trader: valuesMap.get('Trader') || '',
+      status: valuesMap.get('Status')?.toLowerCase() || 'active',
+      description: valuesMap.get('Description') || '',
+      risk: valuesMap.get('Risk')?.toLowerCase() || 'low',
+      createdAt: entity.createdAt || valuesMap.get('Created At'),
+    };
+  }
+
+  async getAllAdditionalStrategyData(): Promise<AdditionalStrategyDataDto[]> {
+    try {
+      const response = await fetch(
+        'https://hypergraph-v2-testnet.up.railway.app/graphql',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: GET_ALL_STRATEGIES,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`GraphQL request failed: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      if (result.errors) {
+        throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+      }
+
+      return result.data.entities.map(this.transformGraphQLResponseToDto);
+    } catch (error) {
+      console.error('Error fetching strategies:', error);
+      throw error;
+    }
   }
 
   async onModuleInit() {
     try {
       await this.testConnection();
     } catch (error) {
-      this.logger.error(`Failed to connect to subgraph during initialization: ${error.message}`);
+      this.logger.error(
+        `Failed to connect to subgraph during initialization: ${error.message}`,
+      );
     }
   }
 
@@ -43,24 +163,34 @@ export class SubgraphService implements OnModuleInit {
       const response = await axios.post(
         this.subgraphUrl,
         { query },
-        { timeout: 5000 } // 5 second timeout
+        { timeout: 5000 }, // 5 second timeout
       );
 
       if (response.data.errors) {
-        this.logger.error(`Subgraph connection test returned errors: ${JSON.stringify(response.data.errors)}`);
+        this.logger.error(
+          `Subgraph connection test returned errors: ${JSON.stringify(response.data.errors)}`,
+        );
         return false;
       }
 
-      this.logger.log(`Successfully connected to subgraph. Current block: ${response.data.data?._meta?.block?.number}`);
+      this.logger.log(
+        `Successfully connected to subgraph. Current block: ${response.data.data?._meta?.block?.number}`,
+      );
       return true;
     } catch (error) {
       this.logger.error(`Subgraph connection test failed: ${error.message}`);
       if (error.code === 'ECONNREFUSED') {
-        this.logger.error(`Could not connect to subgraph at ${this.subgraphUrl}. Make sure the service is running.`);
+        this.logger.error(
+          `Could not connect to subgraph at ${this.subgraphUrl}. Make sure the service is running.`,
+        );
       } else if (error.code === 'ENOTFOUND') {
-        this.logger.error(`Hostname not found for ${this.subgraphUrl}. Check your SUBGRAPH_URL configuration.`);
+        this.logger.error(
+          `Hostname not found for ${this.subgraphUrl}. Check your SUBGRAPH_URL configuration.`,
+        );
       } else if (error.response) {
-        this.logger.error(`Received HTTP ${error.response.status} from subgraph service: ${JSON.stringify(error.response.data)}`);
+        this.logger.error(
+          `Received HTTP ${error.response.status} from subgraph service: ${JSON.stringify(error.response.data)}`,
+        );
       }
       return false;
     }
@@ -94,10 +224,7 @@ export class SubgraphService implements OnModuleInit {
       `;
 
       this.logger.log(`Sending request to subgraph at: ${this.subgraphUrl}`);
-      const response = await axios.post(
-        this.subgraphUrl,
-        { query },
-      );
+      const response = await axios.post(this.subgraphUrl, { query });
 
       if (!response.data) {
         this.logger.error('No data returned from subgraph');
@@ -105,7 +232,9 @@ export class SubgraphService implements OnModuleInit {
       }
 
       if (response.data.errors) {
-        this.logger.error(`GraphQL errors: ${JSON.stringify(response.data.errors)}`);
+        this.logger.error(
+          `GraphQL errors: ${JSON.stringify(response.data.errors)}`,
+        );
         return [];
       }
 
@@ -113,31 +242,34 @@ export class SubgraphService implements OnModuleInit {
       return this.parseStrategies(rawStrategies);
     } catch (error) {
       this.logger.error(`Failed to fetch strategies: ${error.message}`);
-      this.logger.error(`Error details: ${JSON.stringify(error.response?.data || {})}`);
-      return [];  // Return empty array instead of throwing to prevent 500 error
+      this.logger.error(
+        `Error details: ${JSON.stringify(error.response?.data || {})}`,
+      );
+      return []; // Return empty array instead of throwing to prevent 500 error
     }
   }
-  
+
   /**
    * Parse raw strategy data from the subgraph into our domain model
    */
-  parseStrategies(rawStrategies: any[]): Strategy[] {
+  async parseStrategies(rawStrategies: any[]): Promise<Strategy[]> {
     this.logger.log(`Parsing ${rawStrategies.length} strategies`);
     
-    return rawStrategies.map(rawStrategy => {
+    const additionalStrategiesData = await this.getAllAdditionalStrategyData() 
+    const onchainStrategiesData = rawStrategies.map((rawStrategy) => {
       // Calculate current return
       const initialValue = parseInt(rawStrategy.initialValue || '0');
       const finalValue = parseInt(rawStrategy.finalValue || '0');
       const currentReturn = rawStrategy.resolved ? finalValue : initialValue;
-      
+
       // Calculate total bets
       const votesYes = parseInt(rawStrategy.totalYes || '0');
       const votesNo = parseInt(rawStrategy.totalNo || '0');
       const totalBets = votesYes + votesNo;
-      
+
       // Calculate status
       const status = rawStrategy.resolved ? 'completed' : 'active';
-      
+
       // Calculate deadline (endTime if set, otherwise estimate from startTime)
       const startTime = parseInt(rawStrategy.startTime || '0');
       let deadline = parseInt(rawStrategy.endTime || '0');
@@ -147,9 +279,9 @@ export class SubgraphService implements OnModuleInit {
         const duration = parseInt(rawStrategy.duration || '604800'); // Default to 7 days
         deadline = startTime + duration;
       }
-      
+
       // Calculate objective
-      const objectivePercent = parseInt(rawStrategy.objectivePercent || '0');
+      const objectivePercent = parseInt(rawStrategy.objectivePercent || '0'); 
       
       return {
         id: rawStrategy.id,
@@ -160,7 +292,31 @@ export class SubgraphService implements OnModuleInit {
         totalBets,
         votesYes,
         votesNo,
-        status
+        status,
+        description: '',
+        traderReputation: 0,
+        risk: 'medium',
+      };
+    });
+    
+    return onchainStrategiesData.map(onchainStrategy => {
+      const additional = additionalStrategiesData.find(
+        (a) => a.id === onchainStrategy.id,
+      );
+      return {
+        id: onchainStrategy.id,
+        trader: onchainStrategy.trader,
+        objective: onchainStrategy.objective,
+        deadline: onchainStrategy.deadline,
+        currentReturn: onchainStrategy.currentReturn,
+        totalBets: onchainStrategy.totalBets,
+        votesYes: onchainStrategy.votesYes,
+        votesNo: onchainStrategy.votesNo,
+        status: onchainStrategy.status as 'active' | 'completed',
+        description: additional?.description || '',
+        traderReputation: 50, // TODO: Replace with actual reputation logic
+        risk: additional?.risk || 'medium',
+        createdAt: additional?.createdAt || Date.now(),
       };
     });
   }
@@ -200,11 +356,10 @@ export class SubgraphService implements OnModuleInit {
         }
       `;
 
-      this.logger.log(`Fetching strategy with ID: ${id} from subgraph: ${this.subgraphUrl}`);
-      const response = await axios.post(
-        this.subgraphUrl,
-        { query },
+      this.logger.log(
+        `Fetching strategy with ID: ${id} from subgraph: ${this.subgraphUrl}`,
       );
+      const response = await axios.post(this.subgraphUrl, { query });
 
       if (!response.data) {
         this.logger.error(`No data returned when fetching strategy ${id}`);
@@ -212,7 +367,9 @@ export class SubgraphService implements OnModuleInit {
       }
 
       if (response.data.errors) {
-        this.logger.error(`GraphQL errors for strategy ${id}: ${JSON.stringify(response.data.errors)}`);
+        this.logger.error(
+          `GraphQL errors for strategy ${id}: ${JSON.stringify(response.data.errors)}`,
+        );
         return null;
       }
 
@@ -222,12 +379,14 @@ export class SubgraphService implements OnModuleInit {
       }
 
       // Parse the strategy to our domain model
-      const parsedStrategies = this.parseStrategies([rawStrategy]);
+      const parsedStrategies = await this.parseStrategies([rawStrategy]);
       return parsedStrategies[0] || null;
     } catch (error) {
       this.logger.error(`Failed to fetch strategy ${id}: ${error.message}`);
-      this.logger.error(`Error details: ${JSON.stringify(error.response?.data || {})}`);
-      return null;  // Return null instead of throwing to prevent 500 error
+      this.logger.error(
+        `Error details: ${JSON.stringify(error.response?.data || {})}`,
+      );
+      return null; // Return null instead of throwing to prevent 500 error
     }
   }
 
@@ -251,27 +410,176 @@ export class SubgraphService implements OnModuleInit {
         }
       `;
 
-      this.logger.log(`Fetching bets for strategy: ${strategyId} from subgraph: ${this.subgraphUrl}`);
-      const response = await axios.post(
-        this.subgraphUrl,
-        { query },
+      this.logger.log(
+        `Fetching bets for strategy: ${strategyId} from subgraph: ${this.subgraphUrl}`,
       );
+      const response = await axios.post(this.subgraphUrl, { query });
 
       if (!response.data) {
-        this.logger.error(`No data returned when fetching bets for strategy ${strategyId}`);
+        this.logger.error(
+          `No data returned when fetching bets for strategy ${strategyId}`,
+        );
         return [];
       }
 
       if (response.data.errors) {
-        this.logger.error(`GraphQL errors for bets in strategy ${strategyId}: ${JSON.stringify(response.data.errors)}`);
+        this.logger.error(
+          `GraphQL errors for bets in strategy ${strategyId}: ${JSON.stringify(response.data.errors)}`,
+        );
         return [];
       }
 
       return response.data.data?.bets || [];
     } catch (error) {
-      this.logger.error(`Failed to fetch bets for strategy ${strategyId}: ${error.message}`);
-      this.logger.error(`Error details: ${JSON.stringify(error.response?.data || {})}`);
-      return [];  // Return empty array instead of throwing to prevent 500 error
+      this.logger.error(
+        `Failed to fetch bets for strategy ${strategyId}: ${error.message}`,
+      );
+      this.logger.error(
+        `Error details: ${JSON.stringify(error.response?.data || {})}`,
+      );
+      return []; // Return empty array instead of throwing to prevent 500 error
     }
+  }
+
+  async storeStrategy(createStrategy: CreateStrategyDto) {
+    const ops: Array<Op> = [];
+
+    const { id: traderPropertyId, ops: createTraderPropertyOps } =
+      Graph.createProperty({
+        dataType: 'TEXT',
+        name: 'Trader',
+      });
+    ops.push(...createTraderPropertyOps);
+
+    const { id: statusPropertyId, ops: createStatusPropertyOps } =
+      Graph.createProperty({
+        dataType: 'TEXT',
+        name: 'Status',
+      });
+    ops.push(...createStatusPropertyOps);
+
+    const { id: descriptionPropertyId, ops: createDescriptionPropertyOps } =
+      Graph.createProperty({
+        dataType: 'TEXT',
+        name: 'Description',
+      });
+    ops.push(...createDescriptionPropertyOps);
+
+    const { id: riskPropertyId, ops: createRiskPropertyOps } =
+      Graph.createProperty({
+        dataType: 'TEXT',
+        name: 'Risk',
+      });
+    ops.push(...createRiskPropertyOps);
+
+    const { id: createdAtPropertyId, ops: createCreatedAtPropertyOps } =
+      Graph.createProperty({
+        dataType: 'TIME',
+        name: 'Created At',
+      });
+    ops.push(...createCreatedAtPropertyOps);
+
+    const { id: strategyTypeId, ops: createStrategyTypeOps } = Graph.createType(
+      {
+        name: 'Trading Strategy',
+        properties: [
+          traderPropertyId,
+          statusPropertyId,
+          descriptionPropertyId,
+          riskPropertyId,
+          createdAtPropertyId,
+        ],
+      },
+    );
+    ops.push(...createStrategyTypeOps);
+
+    const values = [
+      {
+        property: traderPropertyId,
+        value: createStrategy.trader,
+      },
+      {
+        property: statusPropertyId,
+        value: createStrategy.status,
+      },
+      {
+        property: descriptionPropertyId,
+        value: createStrategy.description,
+      },
+      {
+        property: riskPropertyId,
+        value: createStrategy.risk,
+      },
+      {
+        property: createdAtPropertyId,
+        value: Graph.serializeDate(new Date()),
+      },
+    ];
+
+    const { id: strategyId, ops: createStrategyOps } = Graph.createEntity({
+      name: `Strategy ${createStrategy.trader}`,
+      cover: strategyTypeId,
+      description: `Trading strategy created by ${createStrategy.trader}: ${createStrategy.description}`,
+      types: [strategyTypeId],
+      values,
+    });
+    ops.push(...createStrategyOps);
+
+    console.log(
+      `Strategy created with ID: ${strategyId} for trader: ${createStrategy.trader}`,
+    );
+
+    const publishData = async () => {
+      const result = await Ipfs.publishEdit({
+        name: `Create Strategy: ${createStrategy.trader}`,
+        ops: ops,
+        author: '0x0B21D03690d8322ADA9c65Fb671Fa1DD97B2cb72' as `0x${string}`,
+        network: 'TESTNET',
+      });
+      console.log(`Edit published with ID: ${result.cid}`);
+
+      const spaceId = { id: 'ac6222e5-9dbb-4e8d-a31d-f52baab093ee' } as {
+        id: string;
+      };
+      console.log(`Space created with ID: ${spaceId.id}`);
+
+      const res = await fetch(
+        `https://hypergraph-v2-testnet.up.railway.app/space/${spaceId.id}/edit/calldata`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ cid: result.cid }),
+        },
+      );
+
+      if (!res.ok) {
+        throw new Error(`Failed to get transaction details: ${res.statusText}`);
+      }
+
+      const { to, data } = await res.json();
+      console.log(`Transaction details: to=${to}, data=${data}`);
+
+      const smartAccountWalletClient = await getWalletClient({
+        privateKey:
+          'Oxce79c4c92de28296bcc6b3a0900079679c86144fddedf8414772562d1f29e9f9' as `0x${string}`,
+      });
+
+      const chain = await smartAccountWalletClient.getChainId();
+      console.log(`Chain ID: ${chain}`);
+
+      const txResult = await smartAccountWalletClient.sendTransaction({
+        to: to,
+        value: 0n,
+        data: data,
+      } as unknown as any);
+
+      console.log(`Transaction sent with hash: ${txResult}`);
+    };
+
+    await publishData();
+
+    return {
+      strategyId,
+      transactionHash: await publishData(),
+    };
   }
 }
