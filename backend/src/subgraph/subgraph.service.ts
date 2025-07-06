@@ -1,7 +1,10 @@
+//066fe03ce1f6fa771749d598bebf1d624823635372b3121e31a4f475f5d16d83
+
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { Strategy } from './interfaces/strategy.interface';
+import { getSmartAccountWalletClient } from '@graphprotocol/grc-20';
 import { getWalletClient, Graph, Ipfs, Op } from '@graphprotocol/grc-20';
 import {
   AdditionalStrategyDataDto,
@@ -10,7 +13,7 @@ import {
 
 const GET_ALL_STRATEGIES = `
   query GetAllStrategies {
-    entities(where: { types: { some: { name: { equals: "Trading Strategy" } } } }) {
+    entities(where: { types: { some: { name: { equals: "Strategy" } } } }) {
       id
       name
       description
@@ -46,7 +49,7 @@ const GET_STRATEGIES_BY_TRADER = `
   query GetStrategiesByTrader($trader: String!) {
     entities(
       where: { 
-        types: { some: { name: { equals: "Trading Strategy" } } },
+        types: { some: { name: { equals: "Strategy" } } },
         values: {
           some: {
             property: { name: { equals: "Trader" } },
@@ -102,7 +105,7 @@ export class SubgraphService implements OnModuleInit {
   async getAllAdditionalStrategyData(): Promise<AdditionalStrategyDataDto[]> {
     try {
       const response = await fetch(
-        'https://hypergraph-v2-testnet.up.railway.app/graphql',
+        'https://hypergraph-v2-testnet.up.railway.app/space/3f8873d8-f8a4-43de-bbed-d8de16bf090a/graphql',
         {
           method: 'POST',
           headers: {
@@ -254,8 +257,9 @@ export class SubgraphService implements OnModuleInit {
    */
   async parseStrategies(rawStrategies: any[]): Promise<Strategy[]> {
     this.logger.log(`Parsing ${rawStrategies.length} strategies`);
-    
-    const additionalStrategiesData = await this.getAllAdditionalStrategyData() 
+
+    const additionalStrategiesData = await this.getAllAdditionalStrategyData();
+    // const additionalStrategiesData = [] as AdditionalStrategyDataDto[]
     const onchainStrategiesData = rawStrategies.map((rawStrategy) => {
       // Calculate current return
       const initialValue = parseInt(rawStrategy.initialValue || '0');
@@ -281,8 +285,8 @@ export class SubgraphService implements OnModuleInit {
       }
 
       // Calculate objective
-      const objectivePercent = parseInt(rawStrategy.objectivePercent || '0'); 
-      
+      const objectivePercent = parseInt(rawStrategy.objectivePercent || '0');
+
       return {
         id: rawStrategy.id,
         trader: rawStrategy.trader,
@@ -298,8 +302,8 @@ export class SubgraphService implements OnModuleInit {
         risk: 'medium',
       };
     });
-    
-    return onchainStrategiesData.map(onchainStrategy => {
+
+    return onchainStrategiesData.map((onchainStrategy) => {
       const additional = additionalStrategiesData.find(
         (a) => a.id === onchainStrategy.id,
       );
@@ -481,7 +485,7 @@ export class SubgraphService implements OnModuleInit {
 
     const { id: strategyTypeId, ops: createStrategyTypeOps } = Graph.createType(
       {
-        name: 'Trading Strategy',
+        name: 'Strategy',
         properties: [
           traderPropertyId,
           statusPropertyId,
@@ -533,14 +537,22 @@ export class SubgraphService implements OnModuleInit {
       const result = await Ipfs.publishEdit({
         name: `Create Strategy: ${createStrategy.trader}`,
         ops: ops,
-        author: '0x0B21D03690d8322ADA9c65Fb671Fa1DD97B2cb72' as `0x${string}`,
+        author: '0x4603f0060Bc55FC24381f6d9A9a5b16F3f82EF38' as `0x${string}`,
         network: 'TESTNET',
       });
       console.log(`Edit published with ID: ${result.cid}`);
 
-      const spaceId = { id: 'ac6222e5-9dbb-4e8d-a31d-f52baab093ee' } as {
+      const spaceId = await Graph.createSpace({
+        editorAddress:
+          '0x4603f0060Bc55FC24381f6d9A9a5b16F3f82EF38' as `0x${string}`,
+        name: 'BetFi Test',
+        network: 'TESTNET',
+      });
+      console.log(`Space created with ID: ${spaceId.id}`);
+
+      /* const spaceId = { id: '3f8873d8-f8a4-43de-bbed-d8de16bf090a' } as {
         id: string;
-      };
+      }; */
       console.log(`Space created with ID: ${spaceId.id}`);
 
       const res = await fetch(
@@ -558,19 +570,29 @@ export class SubgraphService implements OnModuleInit {
       const { to, data } = await res.json();
       console.log(`Transaction details: to=${to}, data=${data}`);
 
-      const smartAccountWalletClient = await getWalletClient({
-        privateKey:
-          'Oxce79c4c92de28296bcc6b3a0900079679c86144fddedf8414772562d1f29e9f9' as `0x${string}`,
+      const smartAccountWallet = await getSmartAccountWalletClient({
+        privateKey: "0x066fe03ce1f6fa771749d598bebf1d624823635372b3121e31a4f475f5d16d83" as `0x${string}`,
       });
 
-      const chain = await smartAccountWalletClient.getChainId();
-      console.log(`Chain ID: ${chain}`);
+      /* const smartAccountWalletClient = await getWalletClient({
+        privateKey:
+          'Oxce79c4c92de28296bcc6b3a0900079679c86144fddedf8414772562d1f29e9f9' as `0x${string}`,
+      }); */
 
-      const txResult = await smartAccountWalletClient.sendTransaction({
+      /* const chain = await smartAccountWalletClient.getChainId();
+      console.log(`Chain ID: ${chain}`); */
+     
+      const txResult = await smartAccountWallet.sendTransaction({
         to: to,
         value: 0n,
         data: data,
-      } as unknown as any);
+      });
+
+      /* const txResult = await smartAccountWalletClient.sendTransaction({
+        to: to,
+        value: 0n,
+        data: data,
+      } as unknown as any); */
 
       console.log(`Transaction sent with hash: ${txResult}`);
     };
