@@ -126,7 +126,7 @@ const callGemini = async (message: string): Promise<AIResponse> => {
         systemInstruction: {
           parts: [
             {
-              text: "You are a helpful assistant for a DeFi betting platform called BetFi. Provide helpful, concise responses about DeFi strategies, betting, and crypto."
+              text: "You are a helpful assistant for a DeFi betting platform called BetFi. Provide helpful, concise responses about DeFi strategies, betting, and crypto., Here is your context: This vault VBUSDC with a placement of 100 units of this stable coin, apy moyen is less than 1% this bet have a lot of chances to fail"
             }
           ]
         },

@@ -98,9 +98,11 @@ export default function Home() {
 
   // Call backend when bet is confirmed
   useEffect(() => {
-    if (isConfirmed && !hasBetCallBackend && selectedStrategy && betSide !== null) {
+    if (isConfirmed && !hasBetCallBackend && selectedStrategy && betSide !== null && hash) {
       const saveBetToBackend = async () => {
         try {
+          console.log("selectedStrategy:", selectedStrategy.id);
+          console.log("Saving bet to backend with hash:", hash);
           const betData = {
             strategyId: selectedStrategy.id,
             user: address || 'unknown',
@@ -128,11 +130,13 @@ export default function Home() {
         } catch (backendError) {
           console.error('Backend call failed:', backendError);
           toast.error('Bet placed but backend call failed');
+        } finally {
+          // Only reset state after backend call is complete
+          setHasBetCallBackend(true);
+          setSelectedStrategy(null);
+          setBetSide(null);
+          setBetAmount(0);
         }
-        setHasBetCallBackend(true);
-        setSelectedStrategy(null);
-        setBetSide(null);
-        setBetAmount(0);
       };
 
       saveBetToBackend();
@@ -140,6 +144,7 @@ export default function Home() {
   }, [isConfirmed, hasBetCallBackend, selectedStrategy, betSide, betAmount, address, hash, toast]);
 
   const handleBet = async (strategy: Strategy, isYes: boolean) => {
+    console.log('Placing bet:', { strategy, isYes, betAmount });
     if (!address) {
       toast.error('Please connect your wallet to place a bet');
       return;
@@ -150,16 +155,26 @@ export default function Home() {
       return;
     }
 
+    // Set the strategy state BEFORE calling placeBet
     setSelectedStrategy(strategy);
     setBetSide(isYes);
     setHasBetCallBackend(false);
     
+    console.log('Selected strategy:', strategy);
+    console.log('Bet side:', isYes);
+    
     try {
       await placeBet(strategy.id, isYes, betAmount);
+      console.log('placeBet completed successfully');
     } catch (error) {
       console.error('Bet placement failed:', error);
-      setSelectedStrategy(null);
-      setBetSide(null);
+      // Only reset state if the transaction actually failed
+      // Don't reset if user just cancelled in MetaMask
+      if (error && error.message && !error.message.includes('User rejected')) {
+        setSelectedStrategy(null);
+        setBetSide(null);
+        setHasBetCallBackend(true);
+      }
     }
   };
 
@@ -417,7 +432,7 @@ export default function Home() {
                       {truncateAddress(strategy.trader)}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
-                      +{strategy.objective}%
+                      +{(strategy.objective / 100)}%
                     </p>
                   </div>
                 </div>
@@ -441,11 +456,11 @@ export default function Home() {
                 <div className="col-span-1">
                   <span
                     className={`text-sm font-medium ${
-                      strategy.currentReturn >= 0 ? "text-green-500" : "text-red-600"
+                      (strategy.currentReturn / 100) >= 0 ? "text-green-500" : "text-red-600"
                     }`}
                   >
-                    {strategy.currentReturn > 0 ? "+" : ""}
-                    {strategy.currentReturn.toFixed(1)}%
+                    {(strategy.currentReturn / 100) > 0 ? "+" : ""}
+                    {(strategy.currentReturn / 100).toFixed(1)}%
                   </span>
                 </div>
                 
@@ -615,8 +630,8 @@ export default function Home() {
                                   </div>
                                   <p className="text-sm font-medium text-muted-foreground">Return</p>
                                 </div>
-                                <p className={`text-3xl font-bold ${strategy.currentReturn >= 0 ? "text-green-500" : "text-red-500"}`}>
-                                  {strategy.currentReturn > 0 ? "+" : ""}{strategy.currentReturn.toFixed(1)}%
+                                <p className={`text-3xl font-bold ${(strategy.currentReturn / 100) >= 0 ? "text-green-500" : "text-red-500"}`}>
+                                  {(strategy.currentReturn / 100) > 0 ? "+" : ""}{(strategy.currentReturn / 100).toFixed(1)}%
                                 </p>
                               </div>
                             </div>
@@ -687,7 +702,7 @@ export default function Home() {
                               <div className="space-y-3">
                                 <div className="flex items-center justify-between p-3 bg-background/50 rounded-lg border border-border/20">
                                   <span className="text-muted-foreground">Target Return</span>
-                                  <span className="text-2xl font-bold text-primary">+{strategy.objective}%</span>
+                                  <span className="text-2xl font-bold text-primary">+{(strategy.objective / 100)}%</span>
                                 </div>
                                 <div className="flex items-center justify-between p-3 bg-background/50 rounded-lg border border-border/20">
                                   <span className="text-muted-foreground">Risk Level</span>
