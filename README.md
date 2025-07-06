@@ -1,7 +1,7 @@
-# BetFi: Decentralized Strategy Betting Protocol
+# BetFi: DeFi Strategy Betting Protocol
 
 ## Overview
-BetFi is a decentralized protocol on Katana that allows users to bet on the success or failure of DeFi strategies proposed by traders. The goal is to handle any DeFi protocol. At the moment, the protocol is designed to handle any ERC4626 vault.
+BetFi is a betting plateform on Katana that allows users to bet on the success or failure of DeFi strategies proposed by traders. The goal is to handle any DeFi protocol. At the moment, the protocol is designed to handle any ERC4626 vault.
 
 - **Traders** propose and execute multi-step DeFi strategies, specifying a target yield, duration, and commission.
 - **Bettors** wager on whether the strategy will achieve its target (YES/NO) using the AUSD stablecoin.

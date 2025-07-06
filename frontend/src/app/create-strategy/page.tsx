@@ -22,6 +22,7 @@ import {
 import { useProposeStrategy } from "@/lib/propose-strategy";
 import { useToast } from "@/hooks/use-toast";
 import { useAccount } from 'wagmi';
+import { truncateAddress } from "@/lib/mock-data";
 
 interface VaultConfig {
   id: string;
@@ -512,13 +513,13 @@ export default function CreateStrategyPage() {
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Vault:</span>
                         <span className="font-mono">
-                          {vault.address || "Not set"}
+                          {vault.address ? truncateAddress(vault.address) : "Not set"}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Token:</span>
                         <span className="font-mono">
-                          {vault.tokenAddress || "Not set"}
+                          {vault.tokenAddress ? truncateAddress(vault.tokenAddress) : "Not set"}
                         </span>
                       </div>
                       <div className="flex justify-between">
