@@ -2,6 +2,8 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { Strategy } from './interfaces/strategy.interface';
+import { Bet } from './interfaces/bet.interface';
+import { CreateBetDto } from './interfaces/bet.dto';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { getSmartAccountWalletClient } from '@graphprotocol/grc-20';
 import { getWalletClient, Graph, Ipfs, Op } from '@graphprotocol/grc-20';
@@ -628,5 +630,135 @@ export class SubgraphService implements OnModuleInit {
       strategyId,
       transactionHash: await publishData(),
     };
+  }
+
+  /**
+   * Store a bet in Supabase
+   */
+  async storeBet(createBet: CreateBetDto) {
+    try {
+      const { data, error } = await this.supabaseClient
+        .from('bets')
+        .insert([
+          {
+            id: `bet_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            strategy_id: createBet.strategyId,
+            user_address: createBet.user,
+            side: createBet.side,
+            amount: createBet.amount,
+            transaction_hash: createBet.transactionHash,
+            status: 'active',
+            created_at: new Date().toISOString(),
+          },
+        ])
+        .select()
+        .single();
+
+      if (error) {
+        this.logger.error(`Failed to store bet in Supabase: ${error.message}`);
+        throw error;
+      }
+
+      this.logger.log(`Bet stored in Supabase with ID: ${data.id}`);
+      return data;
+    } catch (err) {
+      this.logger.error(`Error storing bet in Supabase: ${err.message}`);
+      throw err;
+    }
+  }
+
+  /**
+   * Get all bets from Supabase
+   */
+  async getBets(): Promise<Bet[]> {
+    try {
+      const { data, error } = await this.supabaseClient
+        .from('bets')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        this.logger.error(`Failed to fetch bets from Supabase: ${error.message}`);
+        return [];
+      }
+
+      return (data || []).map((item: any) => ({
+        id: item.id,
+        strategyId: item.strategy_id,
+        user: item.user_address,
+        side: item.side,
+        amount: item.amount,
+        transactionHash: item.transaction_hash,
+        createdAt: item.created_at,
+        status: item.status,
+      }));
+    } catch (err) {
+      this.logger.error(`Error fetching bets from Supabase: ${err.message}`);
+      return [];
+    }
+  }
+
+  /**
+   * Get bets for a specific strategy
+   */
+  async getBetsByStrategy(strategyId: string): Promise<Bet[]> {
+    try {
+      const { data, error } = await this.supabaseClient
+        .from('bets')
+        .select('*')
+        .eq('strategy_id', strategyId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        this.logger.error(`Failed to fetch bets for strategy ${strategyId}: ${error.message}`);
+        return [];
+      }
+
+      return (data || []).map((item: any) => ({
+        id: item.id,
+        strategyId: item.strategy_id,
+        user: item.user_address,
+        side: item.side,
+        amount: item.amount,
+        transactionHash: item.transaction_hash,
+        createdAt: item.created_at,
+        status: item.status,
+      }));
+    } catch (err) {
+      this.logger.error(`Error fetching bets for strategy ${strategyId}: ${err.message}`);
+      return [];
+    }
+  }
+
+  /**
+   * Get bets for a specific user
+   */
+  async getBetsByUser(userAddress: string): Promise<Bet[]> {
+    try {
+      const { data, error } = await this.supabaseClient
+        .from('bets')
+        .select('*')
+        .eq('user_address', userAddress)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        this.logger.error(`Failed to fetch bets for user ${userAddress}: ${error.message}`);
+        return [];
+      }
+
+      return (data || []).map((item: any) => ({
+        id: item.id,
+        strategyId: item.strategy_id,
+        user: item.user_address,
+        side: item.side,
+        amount: item.amount,
+        transactionHash: item.transaction_hash,
+        createdAt: item.created_at,
+        status: item.status,
+      }));
+    } catch (err) {
+      this.logger.error(`Error fetching bets for user ${userAddress}: ${err.message}`);
+      return [];
+    }
   }
 }

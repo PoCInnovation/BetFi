@@ -7,6 +7,9 @@ import {
   formatTimeRemaining,
   truncateAddress,
 } from "@/lib/mock-data";
+import { usePlaceBet } from "@/lib/place-bet";
+import { useToast } from "@/hooks/use-toast";
+import { useAccount } from 'wagmi';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +65,14 @@ export default function Home() {
     minNoVotes: 0,
     sortBy: "default",
   });
+  const [betAmount, setBetAmount] = useState<number>(0);
+  const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
+  const [betSide, setBetSide] = useState<boolean | null>(null);
+  const [hasBetCallBackend, setHasBetCallBackend] = useState(false);
+  
+  const { toast } = useToast();
+  const { address } = useAccount();
+  const { placeBet, isPending, isConfirming, isConfirmed, hash } = usePlaceBet();
 
   useEffect(() => {
     const fetchStrategies = async () => {
@@ -84,6 +95,73 @@ export default function Home() {
     setSearchTerm(""); 
     fetchStrategies();
   }, []);
+
+  // Call backend when bet is confirmed
+  useEffect(() => {
+    if (isConfirmed && !hasBetCallBackend && selectedStrategy && betSide !== null) {
+      const saveBetToBackend = async () => {
+        try {
+          const betData = {
+            strategyId: selectedStrategy.id,
+            user: address || 'unknown',
+            side: betSide ? 'yes' : 'no',
+            amount: betAmount,
+            transactionHash: hash
+          };
+
+          const response = await fetch('http://localhost:3000/subgraph/bet', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(betData),
+          });
+
+          if (response.ok) {
+            toast.success('Bet placed successfully!', 'Your bet has been recorded.');
+            // Refresh strategies to get updated vote counts
+            window.location.reload();
+          } else {
+            console.error('Failed to save bet to backend');
+            toast.error('Bet placed but failed to save to backend');
+          }
+        } catch (backendError) {
+          console.error('Backend call failed:', backendError);
+          toast.error('Bet placed but backend call failed');
+        }
+        setHasBetCallBackend(true);
+        setSelectedStrategy(null);
+        setBetSide(null);
+        setBetAmount(0);
+      };
+
+      saveBetToBackend();
+    }
+  }, [isConfirmed, hasBetCallBackend, selectedStrategy, betSide, betAmount, address, hash, toast]);
+
+  const handleBet = async (strategy: Strategy, isYes: boolean) => {
+    if (!address) {
+      toast.error('Please connect your wallet to place a bet');
+      return;
+    }
+
+    if (betAmount <= 0) {
+      toast.error('Please enter a valid bet amount');
+      return;
+    }
+
+    setSelectedStrategy(strategy);
+    setBetSide(isYes);
+    setHasBetCallBackend(false);
+    
+    try {
+      await placeBet(strategy.id, isYes, betAmount);
+    } catch (error) {
+      console.error('Bet placement failed:', error);
+      setSelectedStrategy(null);
+      setBetSide(null);
+    }
+  };
 
   const filteredAndSortedStrategies = useMemo(() => {
     let filtered = strategies;
@@ -405,30 +483,96 @@ export default function Home() {
                 <div className="col-span-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2 px-5">
-                      <Button
-                        variant="default"
-                        size="sm"
-                        className="w-16 relative overflow-hidden group bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 border-0 font-bold text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
-                      >
-                        <span className="relative z-10 flex items-center justify-center space-x-1">
-                          <span className="text-sm">✓</span>
-                          <span className="text-xs">YES</span>
-                        </span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-16 relative overflow-hidden group border-2 border-red-500/60 text-red-400 hover:text-white hover:border-red-400 font-bold bg-red-500/5 hover:bg-gradient-to-r hover:from-red-500 hover:to-red-600 transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
-                      >
-                        <span className="relative z-10 flex items-center justify-center space-x-1">
-                          <span className="text-sm">✗</span>
-                          <span className="text-xs">NO</span>
-                        </span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                      </Button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            disabled={isPending || isConfirming}
+                            className="w-16 relative overflow-hidden group bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 border-0 font-bold text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
+                          >
+                            <span className="relative z-10 flex items-center justify-center space-x-1">
+                              <span className="text-sm">✓</span>
+                              <span className="text-xs">YES</span>
+                            </span>
+                            <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>Place YES Bet</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div className="text-sm text-muted-foreground">
+                              You are betting <strong>YES</strong> on strategy by {truncateAddress(strategy.trader)}
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">Bet Amount</label>
+                              <Input
+                                type="number"
+                                value={betAmount === 0 ? '' : betAmount}
+                                onChange={(e) => setBetAmount(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
+                                placeholder="Enter amount"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                            <Button 
+                              onClick={() => handleBet(strategy, true)}
+                              disabled={isPending || isConfirming || betAmount <= 0}
+                              className="w-full bg-green-600 hover:bg-green-700"
+                            >
+                              {isPending || isConfirming ? 'Placing Bet...' : `Bet ${betAmount} YES`}
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={isPending || isConfirming}
+                            className="w-16 relative overflow-hidden group border-2 border-red-500/60 text-red-400 hover:text-white hover:border-red-400 font-bold bg-red-500/5 hover:bg-gradient-to-r hover:from-red-500 hover:to-red-600 transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
+                          >
+                            <span className="relative z-10 flex items-center justify-center space-x-1">
+                              <span className="text-sm">✗</span>
+                              <span className="text-xs">NO</span>
+                            </span>
+                            <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>Place NO Bet</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div className="text-sm text-muted-foreground">
+                              You are betting <strong>NO</strong> on strategy by {truncateAddress(strategy.trader)}
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium">Bet Amount</label>
+                              <Input
+                                type="number"
+                                value={betAmount === 0 ? '' : betAmount}
+                                onChange={(e) => setBetAmount(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
+                                placeholder="Enter amount"
+                                min="0"
+                                step="0.01"
+                              />
+                            </div>
+                            <Button 
+                              onClick={() => handleBet(strategy, false)}
+                              disabled={isPending || isConfirming || betAmount <= 0}
+                              className="w-full bg-red-600 hover:bg-red-700"
+                            >
+                              {isPending || isConfirming ? 'Placing Bet...' : `Bet ${betAmount} NO`}
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                     <Dialog>
                       <DialogTrigger asChild>
